@@ -15,14 +15,14 @@ public:
 		NEW_LINE,
 		SERVER,
 		LOCATION,
-		ROOT, //directory ??
+		ROOT,
 		ERROR_PAGE,
 		MAX_BODY_SIZE,
 		METHOD,
 		GET,
 		POST,
 		DELTE,
-		INDEX, // can this differ>
+		INDEX,
 		UPLOAD_ENABLE,
 		ON,
 		OFF,
@@ -48,10 +48,7 @@ public:
 	void			classify();
 	size_t			isSeperator(std::string const &content) const;
 	size_t			getSpecialLength(std::string const &content) const;
-	// bool			isAllowed_toFollow(AToken const &in) const;
-	// bool			isAllowed_toPreceed(AToken const &in) const;
 	void			setType(instrutions const &val);
-	bool			validate_syntax(std::vector<AToken>::const_iterator tokens, std::vector<AToken>::const_iterator const &end) const;
 };
 
 #endif
