@@ -30,7 +30,6 @@ public:
 	virtual size_t		getSpecialLength(std::string const &content) const = 0;
 	/* classifies the token */ 
 	virtual void		classify() = 0;
-	virtual bool		validate_syntax(std::vector<AToken>::const_iterator tokens, std::vector<AToken>::const_iterator const &end) const = 0;
 };
 
 #endif

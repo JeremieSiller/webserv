@@ -1,18 +1,20 @@
 #include "Lexer.hpp"
 #include "ConfigToken.hpp"
-#include "RequestToken.hpp"
-// #include "WebServer.hpp"
 
-int	main(void)
+int	main(int argc, char **argv)
 {
+	if (argc != 2) { //define PATH all the time just for testing purpose.
+		std::cerr << "usage: " << argv[0] << " [PATHNAME]" << std::endl;
+		return (1);
+	}
 	try
 	{
-		Lexer<ConfigToken> l("test_conf.conf");
+		Lexer<ConfigToken> l(argv[1]);
 		std::vector<ConfigToken>::const_iterator begin = l.getToken().begin();
 		std::vector<ConfigToken>::const_iterator end = l.getToken().end();
 		while (begin != end)
 		{
-			// std::cout << "|";
+			std::cout << "|";
 			if (begin->content() != "\n")
 					std::cout << begin->content();
 				else
@@ -40,8 +42,4 @@ int	main(void)
 	{
 		std::cerr << e.what() << std::endl;
 	}
-
-	// WebServer test("./test_conf.conf");
-
-	// test.run();
 }

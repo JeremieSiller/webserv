@@ -12,14 +12,14 @@ const std::string	ConfigToken::identity[] = {
 	"\n",
 	"server",
 	"location",
-	"root", // directory ??
+	"root",
 	"error_page",
 	"client_max_body_size",
 	"method",
 	"GET",
 	"POST",
 	"DELETE",
-	"index", // can this differ?
+	"index",
 	"upload_enable",
 	"on",
 	"off",
@@ -27,10 +27,9 @@ const std::string	ConfigToken::identity[] = {
 	"cgi_extension",
 	"cgi_path",
 	"server_name",
-	"autoindex", //needed??
+	"autoindex",
 	":",
 	";",
-	"localhost", // gonna be classified as ip
 	""
 };
 
@@ -65,17 +64,16 @@ void	ConfigToken::classify() {
 	size_t	pos = getPos();
 
 	if (pos != std::string::npos)
-	{
 		_type = pos;
-		if (_content == "localhost")
-			_content = "127.0.0.1";
-	}
 	else if (is_number(_content))
 		_type = INTEGER;
-	else if (_content[0] == '/')
-		_type = DIRECTORY;
-	else if (_content.substr(0, 2) == "./")
-		_type = PATH;
+	else if (_content[0] == '.' || _content[0] == '/')
+	{
+		if (_content.back() == '/')
+			_type = DIRECTORY;
+		else
+			_type = PATH; //can still be directory 
+	}
 	else if (is_ip(_content))
 		_type = IP_ADDRESS;
 	else
@@ -102,31 +100,6 @@ size_t	ConfigToken::isSeperator(std::string const &content) const {
 			safe = tmp;
 	}
 	return (safe);
-}
-
-// bool	ConfigToken::isAllowed_toFollow(AToken const &in) const {
-// 	if (_type == EOF_INSTRUCT)
-// 		return true;
-// 	return false;
-// }
-
-// bool	ConfigToken::isAllowed_toPreceed(AToken const &in) const {
-// 	if (_type == EOF_INSTRUCT)
-// 		return true;
-// 	return false;
-// }
-
-bool	ConfigToken::validate_syntax(std::vector<AToken>::const_iterator tokens, std::vector<AToken>::const_iterator const &end) const {
-	// int	const &instruction = tokens->type();
-	// if (instruction == SERVER)
-	// {
-
-	// }
-	// while (tokens != end)
-	// {
-	// 	tokens++;
-	// }
-	return true;
 }
 
 void	ConfigToken::setType(instrutions const &val) {

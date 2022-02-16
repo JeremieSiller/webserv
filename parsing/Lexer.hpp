@@ -207,8 +207,6 @@ void	Lexer<Token>::check_tokens() const {
 					it++;
 				if (it == _tokens.end())
 					throw ScopeNotClosed();
-				if (it->validate_syntax(tmp, it) == false)
-					throw UnexpectedToken(tmp->content());
 			}
 			if (it == _tokens.end())
 				throw ScopeNotClosed();
