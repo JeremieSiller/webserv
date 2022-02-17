@@ -1,14 +1,14 @@
 #include "AToken.hpp"
 
 AToken::AToken(int type, std::string const &content) :
-	_type(type), _content(content)
+	_type(type), _content(content), _scope()
 { }
 
 AToken::~AToken()
 { }
 
 AToken::AToken(std::string const &content) :
-	_type() , _content(content)
+	_type() , _content(content), _scope()
 { }
 
 int	const	&AToken::type() const {
@@ -19,10 +19,4 @@ std::string const &AToken::content() const {
 	return (_content);
 }
 
-size_t const	&AToken::scope() const {
-	return _scope;
-}
 
-void	AToken::setScope(size_t const &scope) {
-	_scope = scope;
-}

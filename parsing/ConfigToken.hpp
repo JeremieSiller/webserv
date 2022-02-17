@@ -40,15 +40,18 @@ public:
 		STRING
 	} instrutions;
 private:
-	static const std::string	special_toekens;
+	static const std::string	_seperators;
+	size_t						_scope;
 public:
+	ConfigToken(std::string const &content);
 	size_t						getPos() const;
 	static const std::string	identity[];
-	ConfigToken(std::string const &content) : AToken(content) { }
-	void			classify();
-	size_t			isSeperator(std::string const &content) const;
-	size_t			getSpecialLength(std::string const &content) const;
-	void			setType(instrutions const &val);
+	void						classify();
+	size_t						isSeperator(std::string const &content) const;
+	size_t						getSpecialLength(std::string const &content) const;
+	void						setType(instrutions const &val);
+	const size_t				&scope()	const;
+	void						setScope(size_t const &scope);
 };
 
 #endif

@@ -30,26 +30,22 @@ private:
 	std::vector<Token>	_tokens;
 	std::stringstream	_stream;
 /* private member functions */
-	void	split_tokens();
-	void	validate_tokens();
-	void	set_scopes();
-	void	check_tokens() const;
+	void	_splitTokens();
+	void	_validateTokens();
 public:
 /* public member functions */
 	Lexer(std::stringstream const &stream);
 	Lexer(std::string const &_path = DEFAULT_PATH);
 	~Lexer() { };
-	std::vector<Token> const &getToken() const;
+	std::vector<Token> &getToken();
 };
 
 template<typename Token>
 Lexer<Token>::Lexer(std::stringstream const &stream) : _tokens(), _stream()
 {
 	_stream << stream.rdbuf();
-	split_tokens();
-	validate_tokens();
-	set_scopes();
-	// check_tokens();
+	_splitTokens();
+	_validateTokens();
 }
 
 template<typename Token>
@@ -60,10 +56,8 @@ Lexer<Token>::Lexer(std::string const &_path)
 	if (!file)
 		throw FileNotFound(_path);
 	_stream << file.rdbuf();
-	split_tokens();
-	validate_tokens();
-	set_scopes();
-	// check_tokens();
+	_splitTokens();
+	_validateTokens();
 }
 
 template<typename Token>
@@ -104,16 +98,8 @@ public:
 	#endif
 };
 
-template<class Token>
-class Lexer<Token>::ScopeNotClosed : public std::exception {
-public:
-	const char *what() const throw () {
-		return "Error: Scope not closed\n";
-	}
-};
-
 template<typename Token>
-void	Lexer<Token>::split_tokens() {
+void	Lexer<Token>::_splitTokens() {
 	std::string							line;
 	std::stringstream					tmp;
 	std::istream_iterator<std::string>	end;
@@ -136,10 +122,10 @@ void	Lexer<Token>::split_tokens() {
 			while (i != std::string::npos && line.length() > 0)
 			{
 				if (i > 0)
-					_tokens.push_back(line.substr(0, i)); // push back string inbetween
-				_tokens.push_back(line.substr(i, t.getSpecialLength(line))); // push back speical character
-				line = line.substr(i + t.getSpecialLength(line)); // set line after special character
-				i = t.isSeperator(line); // find next speical 
+					_tokens.push_back(line.substr(0, i));
+				_tokens.push_back(line.substr(i, t.getSpecialLength(line)));
+				line = line.substr(i + t.getSpecialLength(line));
+				i = t.isSeperator(line);
 			}
 			if (line.length() > 0)
 				_tokens.push_back(line);
@@ -151,7 +137,7 @@ void	Lexer<Token>::split_tokens() {
 }
 
 template<class Token>
-void	Lexer<Token>::validate_tokens() {
+void	Lexer<Token>::_validateTokens() {
 	typename std::vector<Token>::iterator	it = _tokens.begin();
 	while (it != _tokens.end())
 	{
@@ -169,52 +155,12 @@ void	Lexer<Token>::validate_tokens() {
 	}
 }
 
-template<class Token>
-void	Lexer<Token>::set_scopes() {
-	typename std::vector<Token>::iterator	it = _tokens.begin();
-	int											scope = 0;
-	while (it != _tokens.end())
-	{
-		if (it->type() == Token::SCOPE_START)
-			scope++;
-		else if (it->type() == Token::SCOPE_END)
-			scope--;
-		it->setScope(scope);
-		it++;
-	}
-	if (scope != 0)
-		throw ScopeNotClosed();
-}
+
 
 template<typename Token>
-std::vector<Token> const &Lexer<Token>::getToken() const {
+std::vector<Token> &Lexer<Token>::getToken() {
 		return _tokens;
 };
 
-template<class Token>
-void	Lexer<Token>::check_tokens() const {
-	typename std::vector<Token>::const_iterator	it = _tokens.begin();
-	typename std::vector<Token>::const_iterator tmp = _tokens.begin();
-	int i = 0;
-	while (it != _tokens.end())
-	{
-		if (it->type() == Token::SCOPE_START)
-		{
-			while (it != _tokens.end() && it->type() != Token::SCOPE_END)
-			{
-				tmp = it;
-				while (it != _tokens.end() && it->type() != Token::EOF_INSTRUCT && it->type() != Token::SCOPE_END)
-					it++;
-				if (it == _tokens.end())
-					throw ScopeNotClosed();
-			}
-			if (it == _tokens.end())
-				throw ScopeNotClosed();
-			it++;
-		}
-		else
-			it++;
-	}
-}
 
 #endif
