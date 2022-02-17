@@ -21,8 +21,7 @@ public:
 	virtual ~AToken();
 	int	const			&type()		const;
 	std::string const	&content()	const;
-	size_t const 		&scope()	const;
-	virtual void		setScope(size_t const &scope);
+	
 	/* should return the index of a seperator token (e.g. '{' or ';') that need to be handled as one token even if
 		there are characters next to it */ 
 	virtual size_t		isSeperator(std::string const &content) const = 0;

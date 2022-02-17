@@ -1,5 +1,6 @@
 #include "Lexer.hpp"
 #include "ConfigToken.hpp"
+#include "ConfigParser.hpp"
 
 int	main(int argc, char **argv)
 {
@@ -10,6 +11,7 @@ int	main(int argc, char **argv)
 	try
 	{
 		Lexer<ConfigToken> l(argv[1]);
+		ConfigParser(l.getToken());
 		std::vector<ConfigToken>::const_iterator begin = l.getToken().begin();
 		std::vector<ConfigToken>::const_iterator end = l.getToken().end();
 		while (begin != end)
@@ -40,6 +42,7 @@ int	main(int argc, char **argv)
 	}
 	catch (std::exception const &e)
 	{
+		std::cerr << "Error" << std::endl;
 		std::cerr << e.what() << std::endl;
 	}
 }

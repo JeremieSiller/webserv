@@ -3,7 +3,7 @@
 #include <iostream>
 #include <arpa/inet.h>
 
-const std::string	ConfigToken::special_toekens = "#;:{}";
+const std::string	ConfigToken::_seperators = "#;:{}";
 
 const std::string	ConfigToken::identity[] = {
 	"{",
@@ -32,6 +32,8 @@ const std::string	ConfigToken::identity[] = {
 	";",
 	""
 };
+
+ConfigToken::ConfigToken(std::string const &content) : AToken(content), _scope() { }
 
 static bool	is_number(std::string const &str) {
 	std::string::const_iterator s = str.begin();
@@ -69,7 +71,7 @@ void	ConfigToken::classify() {
 		_type = INTEGER;
 	else if (_content[0] == '.' || _content[0] == '/')
 	{
-		if (_content.back() == '/')
+		if (*_content.rbegin() == '/')
 			_type = DIRECTORY;
 		else
 			_type = PATH; //can still be directory 
@@ -82,9 +84,9 @@ void	ConfigToken::classify() {
 
 /* returns 1 because special ConfigTokens are never longer than 1 */
 size_t	ConfigToken::getSpecialLength(std::string const &content) const {
-	for (size_t i = 0; special_toekens[i]; i++)
+	for (size_t i = 0; _seperators[i]; i++)
 	{
-		if (content.find(special_toekens[i]) != std::string::npos)
+		if (content.find(_seperators[i]) != std::string::npos)
 			return 1;
 	}
 	return (std::string::npos);
@@ -93,9 +95,9 @@ size_t	ConfigToken::getSpecialLength(std::string const &content) const {
 size_t	ConfigToken::isSeperator(std::string const &content) const {
 	size_t	safe = std::string::npos;
 	size_t	tmp = 0;
-	for (size_t i = 0; special_toekens[i]; i++)
+	for (size_t i = 0; _seperators[i]; i++)
 	{
-		tmp = content.find(special_toekens[i]);
+		tmp = content.find(_seperators[i]);
 		if (tmp != std::string::npos && (tmp < safe || safe == std::string::npos))
 			safe = tmp;
 	}
@@ -104,4 +106,13 @@ size_t	ConfigToken::isSeperator(std::string const &content) const {
 
 void	ConfigToken::setType(instrutions const &val) {
 	_type = val;
+}
+
+size_t const	&ConfigToken::scope() const {
+	return _scope;
+}
+
+
+void	ConfigToken::setScope(size_t const &scope) {
+	_scope = scope;
 }
