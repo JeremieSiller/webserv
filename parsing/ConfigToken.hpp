@@ -13,6 +13,7 @@ public:
 		SCOPE_END,
 		COMMENT,
 		NEW_LINE,
+		CONNECTION,
 		SERVER,
 		LOCATION,
 		ROOT,

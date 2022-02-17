@@ -10,6 +10,7 @@ const std::string	ConfigToken::identity[] = {
 	"}",
 	"#",
 	"\n",
+	"connection",
 	"server",
 	"location",
 	"root",
