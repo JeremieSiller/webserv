@@ -36,6 +36,7 @@ class webserv
 		std::vector<client*>		_clients;
 
 		void	_initializeConnections(configshit cs);
+		void	_removeClient(std::vector<client *>::iterator &pos);
 
 		fd_set						_readfds;
 		fd_set						_writefds;

@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/14 20:18:18 by jsiller           #+#    #+#             */
-/*   Updated: 2022/02/17 21:57:40 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/02/18 17:17:13 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int	main(int argc, char **argv) {
 
 	connectionshit con2;
 
-	con2.addr = "169.254.15.104";
+	con2.addr = "0.0.0.0";
 	con2.port = 8080;
 
 	servershit serv3;
@@ -60,7 +60,6 @@ int	main(int argc, char **argv) {
 
 	two.push_back(serv3);
 
-	cs.connections.push_back(std::pair<connectionshit, std::vector<servershit> >(con1, one));
 	cs.connections.push_back(std::pair<connectionshit, std::vector<servershit> >(con2, two));
 	
 	try
