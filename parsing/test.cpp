@@ -12,6 +12,38 @@ template<typename T, typename F>
 		std::cout << "\t\t" << a.first << " " << a.second << std::endl;
 	}
 
+void	print_locations(const std::vector<location> &locations, int tabs) {
+	std::vector<location>::const_iterator it = locations.begin();
+	while (it != locations.end())
+	{
+		for (size_t i = 0; i < tabs - 1; i++) { LOG("\t"); }
+		LOG("Location: \"") << it->_path << "\"" << std::endl;
+		for (size_t i = 0; i < tabs - 1; i++) { LOG("\t"); }
+		LOGN("-----------------------------");
+		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
+		LOG("Root: ") << it->_root << std::endl;
+		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
+		LOG("Upload: ") << it->_upload << std::endl;
+		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
+		LOG("upload_path") << it->_upload_path << std::endl;
+		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
+		LOG("Cgi_extension: ") << it->_cgi_extension << std::endl;
+		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
+		LOG("Cgi_path: ") << it->_cgi_path << std::endl;
+		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
+		LOG("Methods: ");
+		std::for_each(it->_methods.begin(), it->_methods.end(), print<std::string>);
+		LOG(std::endl);
+		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
+		LOG("Index: ");
+		std::for_each(it->_index.begin(), it->_index.end(), print<std::string>);
+		LOG(std::endl);
+		print_locations(it->_locations, tabs + 1);
+		it++;
+	}
+	
+}
+
 void	print_servers(const std::vector<server> &servers) {
 	std::vector<server>::const_iterator	it = servers.begin();
 	while (it != servers.end()) {
@@ -25,6 +57,7 @@ void	print_servers(const std::vector<server> &servers) {
 		LOG(std::endl);
 		LOGN("\tError_Pages: ");
 		std::for_each(it->_error_pages.begin(), it->_error_pages.end(), print_pair<int, std::string>);
+		print_locations(it->_locations, 2);
 		it++;
 	}
 

@@ -198,6 +198,10 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", error_page needs exactly two arguements (error code & path to file)");
 			}
+		} else if (it->type() == ConfigToken::LOCATION) {
+			location l;
+			s._locations.push_back(l);
+			// s._locations[0]._locations.push_back(location());
 		}
 		it++;
 	}

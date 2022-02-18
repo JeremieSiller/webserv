@@ -17,6 +17,7 @@
 
 
 typedef struct s_location {
+    std::string                         _path;
     std::string                         _root;
     std::vector<std::string>            _methods;
     std::vector<std::string>            _index;
@@ -24,11 +25,11 @@ typedef struct s_location {
     std::string                         _upload_path;
     std::string                         _cgi_extension;
     std::string                         _cgi_path;
-    std::map<std::string, s_location>   _locations;
+    std::vector<struct s_location>       _locations;
 } location;
 
 typedef struct s_server {
-    std::map<std::string, location>     _locations;
+    std::vector<location>                _locations;
     std::vector<std::string>            _server_names;
     std::map<int, std::string>          _error_pages;
     std::string                         _root;
