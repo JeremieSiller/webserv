@@ -33,7 +33,7 @@ typedef struct s_server {
     std::map<int, std::string>          _error_pages;
     std::string                         _root;
     std::string                         _client_max_body_size;
-    bool                                _autoindex;
+    char                                _autoindex;
     s_server() : _locations(), _server_names(), _error_pages(), _root(), _autoindex() { }
 } server;
 

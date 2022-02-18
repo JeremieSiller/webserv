@@ -19,7 +19,7 @@ void	print_servers(const std::vector<server> &servers) {
 		LOGN("-----------------------------")
 		LOG("\tRoot: ") << it->_root << std::endl;
 		LOG("\tClient_Max_Body_Size: ") << it->_client_max_body_size << std::endl;
-		LOG("\tAutoindex: ") << it->_autoindex << std::endl;
+		LOG("\tAutoindex: ") << (int)it->_autoindex << std::endl;
 		LOG("\tServer_Names: ");
 		std::for_each(it->_server_names.begin(), it->_server_names.end(), print<std::string>);
 		LOG(std::endl);
