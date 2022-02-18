@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 12:00:46 by jsiller           #+#    #+#             */
-/*   Updated: 2022/02/17 22:10:07 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/02/18 18:47:40 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,7 @@
 
 #pragma once
 
-# include "client.hpp"
 # include "server.hpp"
-# include "location.hpp"
 # include <map>
 # include <exception>
 # include <string>
@@ -25,20 +23,23 @@
 # define STDPORT 80
 # define STDADDRESS "0.0.0.0"
 
-# define CONNECTION_ERROR(msg) throw connection::connection_exception(msg)
+# define CONNECTION_ERROR(msg) throw Connection::Connection_exception(msg)
 
+//Forward declarations
+class Client;
+typedef int t_socket;
 
-class connection
+class Connection
 {
 	public:
 
-		class connection_exception : public std::exception 
+		class Connection_exception : public std::exception 
 		{
 			public:
 
-				connection_exception(const char * msg) : _msg(msg) {}
-				connection_exception(std::string msg) : _msg(msg) {}
-				virtual ~connection_exception() _NOEXCEPT {}
+				Connection_exception(const char * msg) : _msg(msg) {}
+				Connection_exception(std::string msg) : _msg(msg) {}
+				virtual ~Connection_exception() _NOEXCEPT {}
 				virtual const char *what() const _NOEXCEPT { return _msg.c_str(); }
 				
 			private:
@@ -49,8 +50,7 @@ class connection
 
 	private:
 	
-		std::vector<server>		_servers;
-		std::vector<location>	_locations;
+		std::vector<Server>		_servers;
 		const unsigned short	_port;
 		const std::string		_address;
 		t_socket				_socket;
@@ -59,12 +59,12 @@ class connection
 	
 		t_socket	getSocket() { return this->_socket; }
 
-		client	*newAccept();
+		Client	*newAccept();
 
-		void	addServer(server const& in);
+		void	addServer(Server const& in);
 	
-		connection(const unsigned short &port = STDPORT, const std::string &adress = STDADDRESS);
-		~connection();
+		Connection(const unsigned short &port = STDPORT, const std::string &adress = STDADDRESS);
+		~Connection();
 };
 
 

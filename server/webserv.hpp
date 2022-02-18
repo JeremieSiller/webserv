@@ -7,36 +7,17 @@
 # include <map>
 # include "connection.hpp"
 # include "client.hpp"
-
-// THIS SI THE PARSED SHIT
-typedef struct t_connectionshit
-{
-	unsigned short	port;
-	std::string 	addr;
-}connectionshit;
-
-typedef struct t_servershit
-{
-	std::vector<std::string> servername;
-	std::vector<std::string> errorpages;
-	std::string	root;
-}servershit;
-
-typedef struct t_configshit
-{
-	std::vector<std::pair<connectionshit, std::vector<servershit> > > connections;
-}	configshit;
-// IDK what you give me @JEREMY
+# include "../parsing/ConfigParser.hpp"
 
 class webserv
 {
 	private:
 
-		std::vector<connection*>	_connections;
-		std::vector<client*>		_clients;
+		std::vector<Connection*>	_connections;
+		std::vector<Client*>		_clients;
 
-		void	_initializeConnections(configshit cs);
-		void	_removeClient(std::vector<client *>::iterator &pos);
+		void	_initializeConnections(ConfigParser const& p);
+		void	_removeClient(std::vector<Client *>::iterator &pos);
 
 		fd_set						_readfds;
 		fd_set						_writefds;
@@ -49,7 +30,7 @@ class webserv
 
 		void	run();
 
-		webserv(configshit cs);
+		webserv(ConfigParser const& p);
 		~webserv();
 
 };
