@@ -8,6 +8,7 @@
 #include <limits>
 #include <sstream>
 #include <fstream>
+#include <sys/stat.h>
 #include "ConfigToken.hpp"
 
 #define LOG(x) std::cout << x
@@ -53,7 +54,7 @@ private:
     void    _setScopes();
     void    _iterate();
     void    _checkConnection(std::vector<ConfigToken>::iterator &it);
-    void    _checkServer(std::vector<ConfigToken>::iterator &it);
+    void    _checkServer(std::vector<ConfigToken>::iterator &it, connection &c);
     void    _checkLocation(std::vector<ConfigToken>::iterator &it);
     std::string _getAddressFromHost(std::string const &host);
     // void    _checkScopes();

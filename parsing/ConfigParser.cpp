@@ -1,11 +1,26 @@
 #include "ConfigParser.hpp"
 #include <arpa/inet.h>
 
+/**
+ * @brief returns if string is a valid ip_address
+ * 
+ * @param ipAddress 
+ * @return true 
+ * @return false 
+ */
 static bool	is_ip(const std::string &ipAddress)
 {
 	struct sockaddr_in sa;
 	int result = inet_pton(AF_INET, ipAddress.c_str(), &(sa.sin_addr));
 	return result != 0;
+}
+
+static bool is_directory(const std::string &path)
+{
+	struct stat buf;
+	if (stat(path.c_str(), &buf) != 0)
+		return (0);
+	return !S_ISREG(buf.st_mode);
 }
 
 ConfigParser::ConfigParser(std::vector<ConfigToken> &tokens) :
@@ -98,24 +113,58 @@ std::string ConfigParser::_getAddressFromHost(std::string const &host) {
 	return r;
 }
 
-void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it) {
-	
+void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connection &c) {
 	size_t scope = it->scope();
+	server s;
 	it++;
 	while (it != _tokens.end() && it->scope() > scope) {
+		if (it->type() == ConfigToken::ROOT) {
+			if (s._root != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", root can not be empty");
+			}
+			s._root = it->content();
+			if (!is_directory(s._root)) {
+				throw unexpectedToken(it->content(), ", root needs to be a valid directory");
+			}
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", root can not contain more than one path");
+			}
+		} else if (it->type() == ConfigToken::SERVER_NAME) {
+			if (!s._server_names.empty()) {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", server_name needs at least one arguement");
+			}
+			while (it->type() != ConfigToken::EOF_INSTRUCT) {
+				s._server_names.push_back(it->content());
+				it++;
+			}
+		} else if (it->type() == ConfigToken::AUTO_INDEX) {
+			
+		}
 		it++;
 	}
+	c._servers.push_back(s);
 	it++;
 }
 
 void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 	size_t	scope = it->scope();
 	connection	c;
-	// LOGN(it->content());
 	it ++;
 	while (it != _tokens.end() && it->scope() > scope) {
 
 		if (it->type() == ConfigToken::LISTEN) {
+			if (c._port != -1 && c._address != "") {
+				throw unexpectedToken(it->content(), ", listen directive can not be set twice");
+			}
 			it++;
 			while (it != _tokens.end() && it->type() != ConfigToken::EOF_INSTRUCT) {
 				if (it->type() == ConfigToken::INTEGER) {
@@ -153,10 +202,11 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 			}
 		}
 		else if (it->type() == ConfigToken::SERVER) {
-			// LOGN(it->content());
-			_checkServer(it);
-			// LOGN(it->scope());
+			_checkServer(it, c);
 			continue ;
+		}
+		else if (it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::EOF_INSTRUCT) {
+			throw unexpectedToken(it->content(), " connection block can only contain listen directive and server(s)");
 		}
 		it++;
 	}
