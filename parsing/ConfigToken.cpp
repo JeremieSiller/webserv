@@ -22,6 +22,7 @@ const std::string	ConfigToken::identity[] = {
 	"DELETE",
 	"index",
 	"upload_enable",
+	"upload_path",
 	"on",
 	"off",
 	"listen",
@@ -71,12 +72,7 @@ void	ConfigToken::classify() {
 	else if (is_number(_content))
 		_type = INTEGER;
 	else if (_content[0] == '.' || _content[0] == '/')
-	{
-		if (*_content.rbegin() == '/')
-			_type = DIRECTORY;
-		else
 			_type = PATH; //can still be directory 
-	}
 	else if (is_ip(_content))
 		_type = IP_ADDRESS;
 	else

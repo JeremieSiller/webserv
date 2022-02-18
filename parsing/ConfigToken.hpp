@@ -25,6 +25,7 @@ public:
 		DELTE,
 		INDEX,
 		UPLOAD_ENABLE,
+		UPLOAD_PATH,
 		ON,
 		OFF,
 		LISTEN,
@@ -36,7 +37,6 @@ public:
 		EOF_INSTRUCT,
 		IP_ADDRESS,
 		INTEGER,
-		DIRECTORY,
 		PATH,
 		STRING
 	} instrutions;

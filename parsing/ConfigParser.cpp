@@ -3,10 +3,7 @@
 
 /**
  * @brief returns if string is a valid ip_address
- * 
  * @param ipAddress 
- * @return true 
- * @return false 
  */
 static bool	is_ip(const std::string &ipAddress)
 {
@@ -15,6 +12,10 @@ static bool	is_ip(const std::string &ipAddress)
 	return result != 0;
 }
 
+/**
+ * @brief returns if @param path is a valid directory
+ * @param path 
+ */
 static bool is_directory(const std::string &path)
 {
 	struct stat buf;
@@ -23,6 +24,10 @@ static bool is_directory(const std::string &path)
 	return !S_ISREG(buf.st_mode);
 }
 
+/**
+ * @brief returns if @param path is a valid file
+ * @param path 
+ */
 static bool is_file(const std::string &path)
 {
 	struct stat buf;
@@ -122,6 +127,147 @@ std::string ConfigParser::_getAddressFromHost(std::string const &host) {
 	return r;
 }
 
+void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, location &l) {
+	size_t scope = it->scope();
+	l._upload = -1;
+	it++;
+	if (it->type() != ConfigToken::PATH) {
+		throw unexpectedToken(it->content(), ", location needs to have a path");
+	}
+	l._path = it->content();
+	it++;
+	if (it->scope() == scope) {
+		throw unexpectedToken(it->content(), ", location needs a scope, expected \"{\"");
+	}
+	while (it != _tokens.end() && it->scope() > scope) {
+		if (it->type() == ConfigToken::LOCATION) {
+			location	b;
+			_checkLocation(it, b);
+			l._locations.push_back(b);
+		} else if (it->type() == ConfigToken::ROOT) {
+			if (l._root != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", root can not be empty");
+			}
+			l._root = it->content();
+			if (!is_directory(l._root)) {
+				throw unexpectedToken(it->content(), ", root needs to be a valid directory");
+			}
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", root can not contain more than one path");
+			}
+		} else if (it->type() == ConfigToken::INDEX) {
+			if (!l._index.empty()) {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", index need atleast one arguement");
+			}
+			while (it->type() != ConfigToken::EOF_INSTRUCT && (it->type() == ConfigToken::STRING || it->type() == ConfigToken::PATH)) {
+				l._index.push_back(it->content());
+				it++;
+			}
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", index indetifier can not be a keyword, expected \";\"");
+			}
+		} else if (it->type() == ConfigToken::METHOD) {
+			if (!l._methods.empty()) {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", method need atleast one arguement");
+			}
+			while (it->type() != ConfigToken::EOF_INSTRUCT && (it->type() == ConfigToken::POST || it->type() == ConfigToken::DELTE || it->type() == ConfigToken::GET)) {
+				if (l._methods.insert(it->content()).second == false) {
+					throw unexpectedToken(it->content(), ", specific method can not be set twice");
+				}
+				it++;
+			}
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", method indetifier has to be method, expected \";\"");
+			}
+		} else if (it->type() == ConfigToken::UPLOAD_ENABLE) {
+			if (l._upload != -1) {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() != ConfigToken::OFF && it->type() != ConfigToken::ON) {
+				throw unexpectedToken(it->content(), ", upload needs to have paramter \'on\' or \'off\'");
+			}
+			if (it->type() == ConfigToken::ON) {
+				l._upload = true;
+			} else if (it->type() == ConfigToken::OFF) {
+				l._upload = false;
+			}
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", upload needs exaclty one arguement");
+			}
+		} else if (it->type() == ConfigToken::UPLOAD_PATH) {
+			if (l._upload_path != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", upload_path can not be empty");
+			}
+			l._upload_path = it->content();
+			// if (!is_directory(l._root)) {
+			// 	throw unexpectedToken(it->content(), ", upload_path needs to be a valid directory");
+			// }
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", upload_path can not contain more than one path");
+			}
+		} else if (it->type() == ConfigToken::CGI_PATH) {
+			if (l._cgi_path != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", _cgi_path can not be empty");
+			}
+			l._cgi_path = it->content();
+			// if (!is_directory(l._root)) {
+			// 	throw unexpectedToken(it->content(), ", upload_path needs to be a valid directory");
+			// }
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", _cgi_path can not contain more than one path");
+			}
+		} else if (it->type() == ConfigToken::CGI_EXTENSION) {
+			if (l._cgi_extension != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", _cgi_extension can not be empty");
+			}
+			l._cgi_extension = it->content();
+			// if (!is_directory(l._root)) {
+			// 	throw unexpectedToken(it->content(), ", upload_path needs to be a valid directory");
+			// }
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", _cgi_extension can not contain more than one path");
+			}
+		} else if (it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::EOF_INSTRUCT) {
+			throw unexpectedToken(it->content(), ", can not be in location scope");
+		} 
+		
+		it++;
+	}
+	if (l._upload == -1) {
+		l._upload = false;
+	}
+}
+
 void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connection &c) {
 	size_t scope = it->scope();
 	server s;
@@ -200,8 +346,23 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			}
 		} else if (it->type() == ConfigToken::LOCATION) {
 			location l;
+			_checkLocation(it, l);
 			s._locations.push_back(l);
-			// s._locations[0]._locations.push_back(location());
+		} else if (it->type() == ConfigToken::MAX_BODY_SIZE) {
+			if (s._client_max_body_size != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", client_max_body_size can not be empty");
+			}
+			s._client_max_body_size = it->content();
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", client_max_body_size can not contain more than one arguement");
+			}
+		} else if (it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::EOF_INSTRUCT) {
+			throw unexpectedToken(it->content(), ", can not be in server scope");
 		}
 		it++;
 	}
