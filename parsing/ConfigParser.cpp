@@ -23,6 +23,15 @@ static bool is_directory(const std::string &path)
 	return !S_ISREG(buf.st_mode);
 }
 
+static bool is_file(const std::string &path)
+{
+	struct stat buf;
+	if (stat(path.c_str(), &buf) != 0)
+		return (0);
+	return S_ISREG(buf.st_mode);
+}
+
+
 ConfigParser::ConfigParser(std::vector<ConfigToken> &tokens) :
     _tokens(tokens), _connections() {
 	_removeCommentsAndLineBreaks();
@@ -163,6 +172,31 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			it++;
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", autoindex needs exaclty one arguement");
+			}
+		} else if (it->type() == ConfigToken::ERROR_PAGE) {
+			it++;
+			int	error_code;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", error_page needs exactly two arguements (error code & path to file)");
+			}
+			if (it->type() != ConfigToken::INTEGER || (it->content()[0] != '5' && it->content()[0] != '4') || it->content().length() != 3 ) {
+				throw unexpectedToken(it->content(), ", error_page first arguement needs to be a valid error code (4XX or 5XX)");
+			}
+			error_code = std::stoi(it->content());
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", error_page needs exactly two arguements (error code & path to file)");
+			}
+			if (!is_file(it->content())) {
+				throw unexpectedToken(it->content(), "could not find file");
+			}
+			if (s._error_pages[error_code] != "") {
+				throw unexpectedToken(std::to_string(error_code), ", can not set error_page twice");
+			}
+			s._error_pages[error_code] = it->content();
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", error_page needs exactly two arguements (error code & path to file)");
 			}
 		}
 		it++;
