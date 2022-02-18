@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 12:00:46 by jsiller           #+#    #+#             */
-/*   Updated: 2022/02/18 17:46:35 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/02/18 18:47:40 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,7 @@
 
 #pragma once
 
-# include "client.hpp"
 # include "server.hpp"
-# include "location.hpp"
 # include <map>
 # include <exception>
 # include <string>
@@ -27,6 +25,9 @@
 
 # define CONNECTION_ERROR(msg) throw Connection::Connection_exception(msg)
 
+//Forward declarations
+class Client;
+typedef int t_socket;
 
 class Connection
 {

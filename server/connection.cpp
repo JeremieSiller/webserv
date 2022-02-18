@@ -6,13 +6,15 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 12:05:03 by jsiller           #+#    #+#             */
-/*   Updated: 2022/02/18 17:56:47 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/02/18 18:50:30 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "connection.hpp"
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include "client.hpp"
+
 
 Connection::Connection(const unsigned short &port, const std::string &address) :  _servers(), _address(address), _port(port)
 {
@@ -26,10 +28,10 @@ Connection::Connection(const unsigned short &port, const std::string &address) :
 	addr.sin_addr.s_addr = inet_addr(this->_address.c_str());
 
 	if (bind(this->_socket, (struct sockaddr *)&addr, sizeof(addr)) == -1)
-		CONNECTION_ERROR("Server Binding: ");
+		CONNECTION_ERROR("Connection Bind: you cannot bind this address");
 
 	if (listen(this->_socket, -1) == -1)
-		CONNECTION_ERROR("Server Listen: ");
+		CONNECTION_ERROR("Connection Listen: could'nt do it bitch");
 }
 
 Client *Connection::newAccept()
@@ -41,11 +43,11 @@ Client *Connection::newAccept()
 	client_socket = accept(this->_socket, (sockaddr *)&client_addr, &len);
 	
 	if (client_socket == -1)
-		CONNECTION_ERROR("Server Acccept: ");
+		CONNECTION_ERROR("Connection Accept: returned an invalid Socket!");
 
 	fcntl(client_socket, F_SETFL, O_NONBLOCK);
 
-	return new Client(client_socket, (struct sockaddr_in)client_addr);
+	return new Client(client_socket, (struct sockaddr_in)client_addr, this);
 }
 
 void	Connection::addServer(Server const& in)

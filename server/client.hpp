@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/02/18 17:44:47 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/02/18 18:43:41 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include <string>
 # include <arpa/inet.h>
 # include <unistd.h>
+# include "connection.hpp"
 
 typedef int t_socket;
 
@@ -38,10 +39,11 @@ class Client
 		struct sockaddr_in			_addr;
 		std::vector<std::string>	_requests;
 		int							_status;
+		Connection					*_connection;
 
 	public:
 
-		Client(t_socket client_socket, struct sockaddr_in _addr);
+		Client(t_socket client_socket, struct sockaddr_in _addr, Connection *connection);
 		~Client();
 
 		t_socket	getSocket() { return this->_client_socket; }
