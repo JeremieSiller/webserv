@@ -1,19 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   connections.cpp                                    :+:      :+:    :+:   */
+/*   client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jsiller <jsiller@student.42.fr>            +#+  +:+       +#+        */
+/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/02/16 12:05:03 by jsiller           #+#    #+#             */
-/*   Updated: 2022/02/16 12:08:20 by jsiller          ###   ########.fr       */
+/*   Created: 2022/02/17 19:04:16 by nschumac          #+#    #+#             */
+/*   Updated: 2022/02/17 22:10:32 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "connections.hpp"
+#include "client.hpp"
+#include <unistd.h>
 
-connections::connections(const unsigned &port, const std::string &address) : _servers(), _address(address), _port(port) { }
 
-connections::~connections() {
-	
+client::client(t_socket client_socket, struct sockaddr_in addr) : _client_socket(client_socket), _addr(addr), _requests(), _status()
+{
+
+}
+
+client::~client()
+{
+	close(this->_client_socket);
 }

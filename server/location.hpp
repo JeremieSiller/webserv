@@ -12,7 +12,7 @@ private:
 	const	std::string	_root; //not 100% sure how to handle this
 public:
 	location(/* args */);
-	~location();
+	~location() {};
 };
 
 #endif
