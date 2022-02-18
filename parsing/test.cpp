@@ -23,9 +23,9 @@ void	print_locations(const std::vector<location> &locations, int tabs) {
 		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
 		LOG("Root: ") << it->_root << std::endl;
 		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
-		LOG("Upload: ") << it->_upload << std::endl;
+		LOG("Upload: ") << (int)it->_upload << std::endl;
 		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
-		LOG("upload_path") << it->_upload_path << std::endl;
+		LOG("upload_path: ") << it->_upload_path << std::endl;
 		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }
 		LOG("Cgi_extension: ") << it->_cgi_extension << std::endl;
 		for (size_t i = 0; i < tabs; i++) { LOG("\t"); }

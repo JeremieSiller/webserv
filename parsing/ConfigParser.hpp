@@ -4,6 +4,7 @@
 #include <vector>
 #include <exception>
 #include <map>
+#include <set>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -19,13 +20,13 @@
 typedef struct s_location {
     std::string                         _path;
     std::string                         _root;
-    std::vector<std::string>            _methods;
+    std::set<std::string>               _methods;
     std::vector<std::string>            _index;
-    bool                                _upload;
+    char                                _upload;
     std::string                         _upload_path;
     std::string                         _cgi_extension;
     std::string                         _cgi_path;
-    std::vector<struct s_location>       _locations;
+    std::vector<struct s_location>      _locations;
 } location;
 
 typedef struct s_server {
@@ -56,7 +57,7 @@ private:
     void    _iterate();
     void    _checkConnection(std::vector<ConfigToken>::iterator &it);
     void    _checkServer(std::vector<ConfigToken>::iterator &it, connection &c);
-    void    _checkLocation(std::vector<ConfigToken>::iterator &it);
+    void    _checkLocation(std::vector<ConfigToken>::iterator &it, location &l);
     std::string _getAddressFromHost(std::string const &host);
     // void    _checkScopes();
     // void    _checkSyntax();
