@@ -14,28 +14,22 @@
 #include <sys/time.h>
 
 
-webserv::webserv(configshit cs) : _connections(), _clients()
+webserv::webserv(ConfigParser const & p) : _connections(), _clients(), _readfds(), _writefds(), _maxfds()
 {
-	_initializeConnections(cs);
+	_initializeConnections(p);
 }
 
 webserv::~webserv() {}
 
-void	webserv::_initializeConnections(configshit cs)
+void	webserv::_initializeConnections(ConfigParser const& p)
 {
-	// Initialize Connections
-	for (unsigned int i = 0; i < cs.connections.size(); i++)
+	for (std::vector<connection>::const_iterator itr = p._connections.begin(); itr != p._connections.end(); itr++)
 	{
-		this->_connections.push_back(new connection(cs.connections[i].first.port, cs.connections[i].first.addr));
-		// Initialize Servers running on Connections
-		for (unsigned int c = 0; c < cs.connections[i].second.size(); c++)
-		{
-			this->_connections.back()->addServer(server(cs.connections[i].second[c].servername, cs.connections[i].second[c].errorpages, INT_MAX, cs.connections[i].second[c].root));
-		}
+		this->_connections.push_back(new Connection(itr->_port, itr->_address));
 	}
 }
 
-void	webserv::_removeClient(std::vector<client *>::iterator &pos)
+void	webserv::_removeClient(std::vector<Client *>::iterator &pos)
 {
 	delete *pos;
 	this->_clients.erase(pos);
@@ -51,7 +45,7 @@ void	webserv::_initSets()
 	FD_ZERO(&this->_writefds);
 
 	// add server to reading fds
-	for (std::vector<connection*>::iterator itr = this->_connections.begin(); itr != this->_connections.end(); itr++)
+	for (std::vector<Connection*>::iterator itr = this->_connections.begin(); itr != this->_connections.end(); itr++)
 	{
 		FD_SET((*itr)->getSocket(), &this->_readfds);
 		if ((*itr)->getSocket() > this->_maxfds)
@@ -59,11 +53,11 @@ void	webserv::_initSets()
 	}
 	
 	// add clients to read fds
-	for (std::vector<client*>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
+	for (std::vector<Client*>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 	{
-		if ((*itr)->getClientStatus() == client::READING)
+		if ((*itr)->getClientStatus() == Client::READING)
 			FD_SET((*itr)->getSocket(), &this->_readfds);
-		else if ((*itr)->getClientStatus() == client::WRITING)
+		else if ((*itr)->getClientStatus() == Client::WRITING)
 			FD_SET((*itr)->getSocket(), &this->_writefds);
 		else
 			this->_removeClient(itr);
@@ -91,14 +85,14 @@ void webserv::run()
 		}
 		else if (select_ret >= 1) // successfull
 		{
-			for (std::vector<connection*>::iterator itr = this->_connections.begin(); itr != this->_connections.end(); itr++)
+			for (std::vector<Connection*>::iterator itr = this->_connections.begin(); itr != this->_connections.end(); itr++)
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // new client on this connection
 				{
 					try
 					{
 						this->_clients.push_back((*itr)->newAccept());
-						this->_clients.back()->setClientStatus(client::READING);
+						this->_clients.back()->setClientStatus(Client::READING);
 
 					} catch(std::exception &e)
 					{
@@ -106,7 +100,7 @@ void webserv::run()
 					}
 				}
 			}
-			for (std::vector<client*>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
+			for (std::vector<Client*>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // we can read from client
 				{
@@ -118,7 +112,7 @@ void webserv::run()
 					std::cout << "Request: \n" <<  buffer << std::endl << std::endl;
 					
 					// set writing state to make sure we can answer
-					(*itr)->setClientStatus(client::WRITING);
+					(*itr)->setClientStatus(Client::WRITING);
 
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
@@ -130,7 +124,7 @@ void webserv::run()
 
 					write((*itr)->getSocket(), "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 11\n\nHello world", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 11\n\nHello world"));
 					// Set reading after response
-					(*itr)->setClientStatus(client::READING);
+					(*itr)->setClientStatus(Client::READING);
 				}
 			}
 		}
@@ -138,7 +132,7 @@ void webserv::run()
 		{
 			std::cout << "wiping" << std::endl;
 			// Clean all Clients
-			for (std::vector<client *>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
+			for (std::vector<Client *>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 				this->_removeClient(itr);
 		}
 	}

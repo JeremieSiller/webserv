@@ -5,14 +5,14 @@
 
 # include <string>
 
-class location
+class Location
 {
 private:
 	const	std::string	_path;
 	const	std::string	_root; //not 100% sure how to handle this
 public:
-	location(/* args */);
-	~location() {};
+	Location(/* args */);
+	~Location() {};
 };
 
 #endif

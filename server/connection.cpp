@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 12:05:03 by jsiller           #+#    #+#             */
-/*   Updated: 2022/02/17 22:15:09 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/02/18 17:56:47 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <arpa/inet.h>
 
-connection::connection(const unsigned short &port, const std::string &address) :  _servers(), _locations(), _address(address), _port(port)
+Connection::Connection(const unsigned short &port, const std::string &address) :  _servers(), _address(address), _port(port)
 {
 	if ((this->_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) 
 		CONNECTION_ERROR("Socket Creation Error");
@@ -32,7 +32,7 @@ connection::connection(const unsigned short &port, const std::string &address) :
 		CONNECTION_ERROR("Server Listen: ");
 }
 
-client *connection::newAccept()
+Client *Connection::newAccept()
 {
 	t_socket			client_socket;
 	struct sockaddr_in	client_addr;
@@ -45,14 +45,14 @@ client *connection::newAccept()
 
 	fcntl(client_socket, F_SETFL, O_NONBLOCK);
 
-	return new client(client_socket, (struct sockaddr_in)client_addr);
+	return new Client(client_socket, (struct sockaddr_in)client_addr);
 }
 
-void	connection::addServer(server const& in)
+void	Connection::addServer(Server const& in)
 {
 	this->_servers.push_back(in);
 }
 
-connection::~connection() {
+Connection::~Connection() {
 	close(this->_socket);
 }

@@ -6,11 +6,14 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/14 20:18:18 by jsiller           #+#    #+#             */
-/*   Updated: 2022/02/18 17:17:13 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/02/18 17:58:53 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
+#include "../parsing/Lexer.hpp"
+#include "../parsing/ConfigToken.hpp"
+#include "../parsing/ConfigParser.hpp"
 
 # define PROTOCOL AF_INET
 # define SOCKET_TYPE SOCK_STREAM //SOCK_STREAM - two way connection - tcp
@@ -18,58 +21,23 @@
 
 
 int	main(int argc, char **argv) {
-
-	connectionshit con1;
-
-	con1.addr = "127.0.0.1";
-	con1.port = 8080;
-
-	std::vector<servershit> one;
-
-	servershit serv1;
-
-	serv1.servername.push_back("localhost");
-	serv1.errorpages.push_back("yeet");
-	serv1.root = "/";
-
-	servershit serv2;
-
-	serv2.servername.push_back("127.0.0.1");
-	serv2.errorpages.push_back("yeet");
-	serv2.root = "/";
-
-
-	one.push_back(serv1);
-	one.push_back(serv2);
-
-
-	connectionshit con2;
-
-	con2.addr = "0.0.0.0";
-	con2.port = 8080;
-
-	servershit serv3;
-
-	serv3.servername.push_back("169.254.15.104");
-	serv3.errorpages.push_back("yeet");
-	serv3.root = "/";	
 	
-	configshit cs;
-
-	std::vector<servershit> two;
-
-	two.push_back(serv3);
-
-	cs.connections.push_back(std::pair<connectionshit, std::vector<servershit> >(con2, two));
-	
+		if (argc != 2) { //define PATH all the time just for testing purpose.
+		std::cerr << "usage: " << argv[0] << " [PATHNAME]" << std::endl;
+		return (1);
+	}
 	try
 	{
-		webserv webserver(cs);
+		Lexer<ConfigToken> l(argv[1]);
+		ConfigParser  p(l.getToken());
+		webserv webserver(p);
+
 		webserver.run();
 	}
-	catch (std::exception & e)
+	catch (std::exception const &e)
 	{
-		std::cout << e.what() << std::endl;
+		std::cerr << "Error" << std::endl;
+		std::cerr << e.what() << std::endl;
 	}
 
 }
