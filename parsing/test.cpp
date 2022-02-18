@@ -2,6 +2,46 @@
 #include "ConfigToken.hpp"
 #include "ConfigParser.hpp"
 
+template<typename T>
+	void	print(const T &a) {
+		std::cout << a << " ";
+	}
+
+template<typename T, typename F>
+	void	print_pair(const std::pair<T, F> &a) {
+		std::cout "\t\t" << a.first << " " << a.second << std::endl;
+	}
+
+void	print_servers(const std::vector<server> &servers) {
+	std::vector<server>::const_iterator	it = servers.begin();
+	while (it != servers.end()) {
+		LOGN("\tServer: ")
+		LOGN("\t-----------------------------")
+		LOG("\tRoot: ") << it->_root << std::endl;
+		LOG("\tClient_Max_Body_Size: ") << it->_client_max_body_size << std::endl;
+		LOG("\tAutoindex: ") << it->_autoindex << std::endl;
+		LOG("\tServer_Names: ");
+		std::for_each(it->_server_names.begin(), it->_server_names.end(), print<std::string>);
+		LOG(std::endl);
+		LOGN("\tError_Pages: ");
+		std::for_each(it->_error_pages.begin(), it->_error_pages.end(), print_pair<int, std::string>);
+	}
+
+}
+
+void print_connections(const std::vector<connection> &connections ) {
+	std::vector<connection>::const_iterator	it = connections.begin();
+	while (it != connections.end()) {
+		LOGN("Connection: ")
+		LOGN("-----------------------------");
+		LOG("Address: ") << it->_address << std::endl;
+		LOG("Port: ") << it->_port << std::endl;
+
+		it++;
+	}
+
+}
+
 int	main(int argc, char **argv)
 {
 	if (argc != 2) { //define PATH all the time just for testing purpose.
@@ -11,9 +51,10 @@ int	main(int argc, char **argv)
 	try
 	{
 		Lexer<ConfigToken> l(argv[1]);
-		ConfigParser(l.getToken());
+		ConfigParser  p(l.getToken());
 		std::vector<ConfigToken>::const_iterator begin = l.getToken().begin();
 		std::vector<ConfigToken>::const_iterator end = l.getToken().end();
+		print_connections(p._connections);
 		// while (begin != end)
 		// {
 		// 	std::cout << "|";

@@ -10,6 +10,9 @@
 #include <fstream>
 #include "ConfigToken.hpp"
 
+#define LOG(x) std::cout << x
+#define LOGN(x) std::cout << x << std::endl; 
+
 
 
 typedef struct s_location {
@@ -42,9 +45,10 @@ typedef struct s_connection {
 
 class ConfigParser
 {
+public:
+    std::vector<connection>     _connections;
 private:
     std::vector<ConfigToken>    &_tokens;
-    std::vector<connection>     _connections;
     void    _removeCommentsAndLineBreaks();
     void    _setScopes();
     void    _iterate();

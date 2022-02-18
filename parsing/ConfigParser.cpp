@@ -22,7 +22,7 @@ ConfigParser::~ConfigParser() {
 class   ConfigParser::ScopeNotClosed : public std::exception {
 public:
 	const char *what() const throw () {
-		return "Error: Scope not closed\n";
+		return "Scope not closed\n";
 	}
 };
 
@@ -50,9 +50,9 @@ void    ConfigParser::_setScopes() {
 	{
 		if (it->type() == ConfigToken::SCOPE_START)
 			scope++;
-		it->setScope(scope);
 		if (it->type() == ConfigToken::SCOPE_END)
 			scope--;
+		it->setScope(scope);
 		it++;
 	}
 	if (scope != 0)
@@ -83,7 +83,7 @@ std::string ConfigParser::_getAddressFromHost(std::string const &host) {
 			if (*start == host) {
 				if (start != end) {
 					if (r != "" && is_ip(start_line)) {
-						throw std::runtime_error("found duplicate symbols for hostname: " + host + " in /etc/hosts");
+						throw std::runtime_error("duplicate symbols for hostname: " + host + " in /etc/hosts");
 					}
 					if (is_ip(start_line))
 						r = start_line;
@@ -98,9 +98,20 @@ std::string ConfigParser::_getAddressFromHost(std::string const &host) {
 	return r;
 }
 
+void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it) {
+	
+	size_t scope = it->scope();
+	it++;
+	while (it != _tokens.end() && it->scope() > scope) {
+		it++;
+	}
+	it++;
+}
+
 void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 	size_t	scope = it->scope();
 	connection	c;
+	// LOGN(it->content());
 	it ++;
 	while (it != _tokens.end() && it->scope() > scope) {
 
@@ -141,8 +152,21 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 				throw std::runtime_error("LISTEN keyword atleast needs a PORT or a HOSTNAME");
 			}
 		}
+		else if (it->type() == ConfigToken::SERVER) {
+			// LOGN(it->content());
+			_checkServer(it);
+			// LOGN(it->scope());
+			continue ;
+		}
 		it++;
 	}
+	it++;
+	if (c._address == "")
+		c._address = "0.0.0.0";
+	if (c._port == -1)
+		c._port = 80;
+	_connections.push_back(c);
+	// LOGN(it->content());
 }
 
 void	ConfigParser::_iterate() {
