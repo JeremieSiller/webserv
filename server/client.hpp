@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/02/18 18:43:41 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/02/18 18:53:52 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,16 +40,19 @@ class Client
 		std::vector<std::string>	_requests;
 		int							_status;
 		Connection					*_connection;
+		std::string					_request;
 
 	public:
 
 		Client(t_socket client_socket, struct sockaddr_in _addr, Connection *connection);
 		~Client();
 
-		t_socket	getSocket() { return this->_client_socket; }
+		t_socket		getSocket() { return this->_client_socket; }
 
-		clientstatus getClientStatus() { return static_cast<clientstatus>(this->_status); }
-		void setClientStatus(clientstatus cs) { this->_status = static_cast<int>(cs); }
+		clientstatus	getClientStatus() { return static_cast<clientstatus>(this->_status); }
+		void			setClientStatus(clientstatus cs) { this->_status = static_cast<int>(cs); }
+
+		
 
 		Client &operator=(const Client &in)
 		{
