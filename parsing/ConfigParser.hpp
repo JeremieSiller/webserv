@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sys/stat.h>
 #include "ConfigToken.hpp"
+#include "utility.hpp"
 
 #define LOG(x) std::cout << x
 #define LOGN(x) std::cout << x << std::endl; 
@@ -48,8 +49,6 @@ typedef struct s_connection {
 
 class ConfigParser
 {
-public:
-    std::vector<connection>     _connections;
 private:
     std::vector<ConfigToken>    &_tokens;
     void    _removeCommentsAndLineBreaks();
@@ -59,10 +58,8 @@ private:
     void    _checkServer(std::vector<ConfigToken>::iterator &it, connection &c);
     void    _checkLocation(std::vector<ConfigToken>::iterator &it, location &l);
     std::string _getAddressFromHost(std::string const &host);
-    // void    _checkScopes();
-    // void    _checkSyntax();
-    // void    _checkKeywords();
-/*  execptions */
+public:
+    std::vector<connection>     _connections;
 private:
     class   ScopeNotClosed;
     class   unexpectedToken;
