@@ -1,41 +1,4 @@
 #include "ConfigParser.hpp"
-#include <arpa/inet.h>
-
-/**
- * @brief returns if string is a valid ip_address
- * @param ipAddress 
- */
-static bool	is_ip(const std::string &ipAddress)
-{
-	struct sockaddr_in sa;
-	int result = inet_pton(AF_INET, ipAddress.c_str(), &(sa.sin_addr));
-	return result != 0;
-}
-
-/**
- * @brief returns if @param path is a valid directory
- * @param path 
- */
-static bool is_directory(const std::string &path)
-{
-	struct stat buf;
-	if (stat(path.c_str(), &buf) != 0)
-		return (0);
-	return !S_ISREG(buf.st_mode);
-}
-
-/**
- * @brief returns if @param path is a valid file
- * @param path 
- */
-static bool is_file(const std::string &path)
-{
-	struct stat buf;
-	if (stat(path.c_str(), &buf) != 0)
-		return (0);
-	return S_ISREG(buf.st_mode);
-}
-
 
 ConfigParser::ConfigParser(std::vector<ConfigToken> &tokens) :
     _tokens(tokens), _connections() {
@@ -61,6 +24,9 @@ public:
 		: std::runtime_error("unexpected token: \"" + content + "\"" + specific) { }
 };
 
+/**
+ * @brief removes all comments and line breaks from token list
+ */
 void	ConfigParser::_removeCommentsAndLineBreaks() {
 	std::vector<ConfigToken>::iterator	it = _tokens.begin();
 	while (it != _tokens.end()) {
@@ -72,6 +38,11 @@ void	ConfigParser::_removeCommentsAndLineBreaks() {
 	}
 }
 
+/**
+ * @brief sets the scope depth for all tokens 
+ * throws an error if a scope is not closed or there are
+ * too many closing scopes. 
+ */
 void    ConfigParser::_setScopes() {
 	std::vector<ConfigToken>::iterator	it = _tokens.begin();
 	int											scope = 0;
@@ -86,45 +57,6 @@ void    ConfigParser::_setScopes() {
 	}
 	if (scope != 0)
 		throw ScopeNotClosed();
-}
-
-/**
- * @brief reads file /etc/hosts and searches for @param host 
- * @return std::string corresponding ip address
- */
-std::string ConfigParser::_getAddressFromHost(std::string const &host) {
-	std::ifstream						file("/etc/hosts");
-	std::string							r = "";
-	std::stringstream 					stream;
-	std::stringstream					tmp;
-	std::string							start_line;
-	std::istream_iterator<std::string>	start;
-	std::string							line;
-	if (!file)
-		return r;
-	stream << file.rdbuf();
-	while (std::getline(stream, line)) {
-		std::istream_iterator<std::string>	end;
-		tmp << line;
-		start = tmp;
-		start_line = *start;
-		while (start != end) {
-			if (*start == host) {
-				if (start != end) {
-					if (r != "" && is_ip(start_line)) {
-						throw std::runtime_error("duplicate symbols for hostname: " + host + " in /etc/hosts");
-					}
-					if (is_ip(start_line))
-						r = start_line;
-				}
-				tmp.clear();
-				break ;
-			}
-			start++;
-		}
-		tmp.clear();
-	}
-	return r;
 }
 
 void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, location &l) {
@@ -218,9 +150,6 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 				throw unexpectedToken(it->content(), ", upload_path can not be empty");
 			}
 			l._upload_path = it->content();
-			// if (!is_directory(l._root)) {
-			// 	throw unexpectedToken(it->content(), ", upload_path needs to be a valid directory");
-			// }
 			it++;
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", upload_path can not contain more than one path");
@@ -234,9 +163,6 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 				throw unexpectedToken(it->content(), ", _cgi_path can not be empty");
 			}
 			l._cgi_path = it->content();
-			// if (!is_directory(l._root)) {
-			// 	throw unexpectedToken(it->content(), ", upload_path needs to be a valid directory");
-			// }
 			it++;
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", _cgi_path can not contain more than one path");
@@ -250,9 +176,6 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 				throw unexpectedToken(it->content(), ", _cgi_extension can not be empty");
 			}
 			l._cgi_extension = it->content();
-			// if (!is_directory(l._root)) {
-			// 	throw unexpectedToken(it->content(), ", upload_path needs to be a valid directory");
-			// }
 			it++;
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", _cgi_extension can not contain more than one path");
@@ -408,7 +331,7 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 						std::cerr << "addr: " << c._address << std::endl;
 						throw unexpectedToken(it->content(), ", HOSTNAME can not be set twice for one connection");
 					}
-					c._address = _getAddressFromHost(it->content());
+					c._address = getAddressFromHost(it->content());
 					if (c._address == "" || !is_ip(c._address)) {
 						throw unexpectedToken(it->content(), ", not a valid HOSTNAME, format: X.X.X.X or in /etc/hosts");
 					}
@@ -434,7 +357,6 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 	if (c._port == -1)
 		c._port = 80;
 	_connections.push_back(c);
-	// LOGN(it->content());
 }
 
 void	ConfigParser::_iterate() {
