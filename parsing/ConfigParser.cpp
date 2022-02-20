@@ -1,7 +1,7 @@
 #include "ConfigParser.hpp"
 
 ConfigParser::ConfigParser(std::vector<ConfigToken> &tokens) :
-    _tokens(tokens), _connections() {
+	_tokens(tokens), _connections() {
 	_removeCommentsAndLineBreaks();
 	_setScopes();
 	_iterate();
@@ -11,10 +11,17 @@ ConfigParser::~ConfigParser() {
 
 }
 
-class   ConfigParser::ScopeNotClosed : public std::exception {
+class	ConfigParser::ScopeNotClosed : public std::exception {
 public:
 	const char *what() const throw () {
-		return "Scope not closed\n";
+		return "found unclosed Scope";
+	}
+};
+
+class ConfigParser::tooManyClosingScopes : public std::exception {
+public:
+	const char *what() const throw () {
+		return "found too many closing scopes";
 	}
 };
 
@@ -48,21 +55,25 @@ void    ConfigParser::_setScopes() {
 	int											scope = 0;
 	while (it != _tokens.end())
 	{
-		if (it->type() == ConfigToken::SCOPE_START)
+		if (it->type() == ConfigToken::SCOPE_START) {
 			scope++;
-		if (it->type() == ConfigToken::SCOPE_END)
+		}
+		if (it->type() == ConfigToken::SCOPE_END) {
 			scope--;
+		}
 		it->setScope(scope);
 		it++;
 	}
-	if (scope != 0)
+	if (scope > 0) {
 		throw ScopeNotClosed();
+	} else if (scope < 0) {
+		throw tooManyClosingScopes();
+	}
 }
 
 void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, location &l) {
 	size_t scope = it->scope();
 	l._upload = -1;
-	it++;
 	if (it->type() != ConfigToken::PATH) {
 		throw unexpectedToken(it->content(), ", location needs to have a path");
 	}
@@ -71,10 +82,11 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 	if (it->scope() == scope) {
 		throw unexpectedToken(it->content(), ", location needs a scope, expected \"{\"");
 	}
+	it++;
 	while (it != _tokens.end() && it->scope() > scope) {
 		if (it->type() == ConfigToken::LOCATION) {
 			location	b;
-			_checkLocation(it, b);
+			_checkLocation(++it, b);
 			l._locations.push_back(b);
 		} else if (it->type() == ConfigToken::ROOT) {
 			if (l._root != "") {
@@ -180,7 +192,7 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", _cgi_extension can not contain more than one path");
 			}
-		} else if (it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::EOF_INSTRUCT) {
+		} else if (it->type() != ConfigToken::SCOPE_END /* && it->type() != ConfigToken::SCOPE_START */ && it->type() != ConfigToken::EOF_INSTRUCT) {
 			throw unexpectedToken(it->content(), ", can not be in location scope");
 		} 
 		
@@ -196,7 +208,7 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 	server s;
 	s._autoindex = -1;
 	it++;
-	while (it != _tokens.end() && it->scope() > scope) {
+	while (it != _tokens.end() && it->scope() >= scope) {
 		if (it->type() == ConfigToken::ROOT) {
 			if (s._root != "") {
 				throw unexpectedToken(it->content(), ", can not be set twice");
@@ -257,7 +269,7 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 				throw unexpectedToken(it->content(), ", error_page needs exactly two arguements (error code & path to file)");
 			}
 			if (!is_file(it->content())) {
-				throw unexpectedToken(it->content(), "could not find file");
+				throw unexpectedToken(it->content(), ", could not find file");
 			}
 			if (s._error_pages[error_code] != "") {
 				throw unexpectedToken((it - 1)->content(), ", can not set error_page twice");
@@ -269,7 +281,7 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			}
 		} else if (it->type() == ConfigToken::LOCATION) {
 			location l;
-			_checkLocation(it, l);
+			_checkLocation(++it, l);
 			s._locations.push_back(l);
 		} else if (it->type() == ConfigToken::MAX_BODY_SIZE) {
 			if (s._client_max_body_size != "") {
@@ -284,7 +296,7 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", client_max_body_size can not contain more than one arguement");
 			}
-		} else if (it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::EOF_INSTRUCT) {
+		} else if (/* it->type() != ConfigToken::SCOPE_START && */ it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::EOF_INSTRUCT) {
 			throw unexpectedToken(it->content(), ", can not be in server scope");
 		}
 		it++;
@@ -300,8 +312,7 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 	size_t	scope = it->scope();
 	connection	c;
 	it ++;
-	while (it != _tokens.end() && it->scope() > scope) {
-
+	while (it != _tokens.end() && it->scope() == scope) {
 		if (it->type() == ConfigToken::LISTEN) {
 			if (c._port != -1 && c._address != "") {
 				throw unexpectedToken(it->content(), ", listen directive can not be set twice");
@@ -312,14 +323,9 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 					if (c._port != -1) {
 						throw unexpectedToken(it->content(), ", PORT can not be set twice for one connection");
 					}
-					try
-					{
-						c._port = std::atoi(it->content().c_str());
-						if (c._port < 0 || c._port > 65535){
-							throw unexpectedToken(it->content(), ", not a valid PORT, needs to fit in a short");
-						}
-					} catch (std::exception const &e) {
-							throw unexpectedToken(it->content(), ", not a valid PORT, needs to fit in a short");
+					c._port = std::atoi(it->content().c_str());
+					if (c._port < 0 || c._port > 65535){
+						throw unexpectedToken(it->content(), ", not a valid PORT, needs to fit in a short");
 					}
 				} else if (it->type() == ConfigToken::IP_ADDRESS) {
 					if (c._address != "") {
@@ -328,7 +334,6 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 					c._address = it->content();
 				} else {
 					if (c._address != "") {
-						std::cerr << "addr: " << c._address << std::endl;
 						throw unexpectedToken(it->content(), ", HOSTNAME can not be set twice for one connection");
 					}
 					c._address = getAddressFromHost(it->content());
@@ -343,10 +348,10 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 			}
 		}
 		else if (it->type() == ConfigToken::SERVER) {
-			_checkServer(it, c);
+			_checkServer(++it, c);
 			continue ;
 		}
-		else if (it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::EOF_INSTRUCT) {
+		else if (it->type() != ConfigToken::EOF_INSTRUCT) {
 			throw unexpectedToken(it->content(), " connection block can only contain listen directive and server(s)");
 		}
 		it++;
@@ -363,8 +368,10 @@ void	ConfigParser::_iterate() {
 	std::vector<ConfigToken>::iterator	it = _tokens.begin();
 	while (it != _tokens.end()) {
 		if (it->type() == ConfigToken::CONNECTION) {
-			_checkConnection(it);
+			_checkConnection(++it);
 			continue ;
+		} else {
+			throw unexpectedToken(it->content(), ", outer scope can only contain connection(s)");
 		}
 		it++;
 	}
