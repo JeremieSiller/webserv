@@ -308,6 +308,12 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 	it++;
 }
 
+/**
+ * @brief _checkConnection parses a connection directive
+ * a connection directive can contain a listen directive and multiple servers
+ * 
+ * @param it a reference to the iterator of the token list. Will itrate till it finds a new scope
+ */
 void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 	size_t	scope = it->scope();
 	connection	c;
@@ -364,6 +370,12 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 	_connections.push_back(c);
 }
 
+/**
+ * @brief _iterate iterates over all tokens and identifies connection blocks
+ * if a connection block is found it will pass on a reference to the current position
+ * to _checkConnection which than will parse the connection directive.
+ * if it finds a token that is not a connection it throws an error
+ */
 void	ConfigParser::_iterate() {
 	std::vector<ConfigToken>::iterator	it = _tokens.begin();
 	while (it != _tokens.end()) {
