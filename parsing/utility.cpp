@@ -33,3 +33,42 @@ bool    is_file(const std::string &path)
 		return (0);
 	return S_ISREG(buf.st_mode);
 }
+
+/**
+ * @brief reads file /etc/hosts and searches for @param host 
+ * @return std::string corresponding ip address
+ */
+std::string getAddressFromHost(std::string const &host) {
+	std::ifstream						file("/etc/hosts");
+	std::string							r = "";
+	std::stringstream 					stream;
+	std::stringstream					tmp;
+	std::string							start_line;
+	std::istream_iterator<std::string>	start;
+	std::string							line;
+	if (!file)
+		return r;
+	stream << file.rdbuf();
+	while (std::getline(stream, line)) {
+		std::istream_iterator<std::string>	end;
+		tmp << line;
+		start = tmp;
+		start_line = *start;
+		while (start != end) {
+			if (*start == host) {
+				if (start != end) {
+					if (r != "" && is_ip(start_line)) {
+						throw std::runtime_error("duplicate symbols for hostname: " + host + " in /etc/hosts");
+					}
+					if (is_ip(start_line))
+						r = start_line;
+				}
+				tmp.clear();
+				break ;
+			}
+			start++;
+		}
+		tmp.clear();
+	}
+	return r;
+}

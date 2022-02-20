@@ -57,7 +57,6 @@ private:
     void    _checkConnection(std::vector<ConfigToken>::iterator &it);
     void    _checkServer(std::vector<ConfigToken>::iterator &it, connection &c);
     void    _checkLocation(std::vector<ConfigToken>::iterator &it, location &l);
-    std::string _getAddressFromHost(std::string const &host);
 public:
     std::vector<connection>     _connections;
 private:
