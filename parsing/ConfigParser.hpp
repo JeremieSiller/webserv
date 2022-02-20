@@ -10,6 +10,7 @@
 #include <sstream>
 #include <fstream>
 #include <sys/stat.h>
+#include <cstdlib>
 #include "ConfigToken.hpp"
 #include "utility.hpp"
 

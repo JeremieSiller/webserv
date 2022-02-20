@@ -112,8 +112,8 @@ void webserv::run()
 					// HIER MUSS EINGELESEN WERDEN, KANNST DU AUCH IN CLIENT NE FUNKTION MACHEN
 					// @JONAS
 					char buffer[4096];
-					memset(buffer, 0, 4096);
-					int chars = recv((*itr)->getSocket(), buffer, 4096, 0);
+					std::memset(buffer, 0, 4096);
+					int chars = recv((*itr)->getSocket(), buffer, 4096, 0); // unused ?!
 					std::cout << "Request: \n" <<  buffer << std::endl << std::endl;
 					
 					// set writing state to make sure we can answer
