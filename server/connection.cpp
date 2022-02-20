@@ -16,13 +16,12 @@
 #include "client.hpp"
 
 
-Connection::Connection(const unsigned short &port, const std::string &address) :  _servers(), _address(address), _port(port)
+Connection::Connection(const unsigned short &port, const std::string &address) :  _servers(), _port(port), _address(address)
 {
 	if ((this->_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) 
 		CONNECTION_ERROR("Socket Creation Error");
 	
-	struct sockaddr_in addr;
-	std::memset(&addr, 0, sizeof(addr));
+	struct sockaddr_in addr = (struct sockaddr_in) { };
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(this->_port);
 	addr.sin_addr.s_addr = inet_addr(this->_address.c_str());

@@ -251,7 +251,7 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			if (it->type() != ConfigToken::INTEGER || (it->content()[0] != '5' && it->content()[0] != '4') || it->content().length() != 3 ) {
 				throw unexpectedToken(it->content(), ", error_page first arguement needs to be a valid error code (4XX or 5XX)");
 			}
-			error_code = std::stoi(it->content());
+			error_code = std::atoi(it->content().c_str());
 			it++;
 			if (it->type() == ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", error_page needs exactly two arguements (error code & path to file)");
@@ -260,7 +260,7 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 				throw unexpectedToken(it->content(), "could not find file");
 			}
 			if (s._error_pages[error_code] != "") {
-				throw unexpectedToken(std::to_string(error_code), ", can not set error_page twice");
+				throw unexpectedToken((it - 1)->content(), ", can not set error_page twice");
 			}
 			s._error_pages[error_code] = it->content();
 			it++;
@@ -314,7 +314,7 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 					}
 					try
 					{
-						c._port = std::stoi(it->content());
+						c._port = std::atoi(it->content().c_str());
 						if (c._port < 0 || c._port > 65535){
 							throw unexpectedToken(it->content(), ", not a valid PORT, needs to fit in a short");
 						}

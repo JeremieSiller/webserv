@@ -8,6 +8,7 @@
 # include <iostream>
 # include <fstream>
 # include <sstream>
+# include <iterator>
 
 bool	    is_ip(const std::string &ipAddress);
 bool        is_directory(const std::string &path);
