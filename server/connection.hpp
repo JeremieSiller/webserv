@@ -33,19 +33,10 @@ class Connection
 {
 	public:
 
-		class Connection_exception : public std::exception 
+		class Connection_exception : public std::runtime_error 
 		{
 			public:
-
-				Connection_exception(const char * msg) : _msg(msg) {}
-				Connection_exception(std::string msg) : _msg(msg) {}
-				virtual ~Connection_exception() _NOEXCEPT {}
-				virtual const char *what() const _NOEXCEPT { return _msg.c_str(); }
-				
-			private:
-			
-				std::string _msg;
-
+				Connection_exception(std::string const &msg) : std::runtime_error(msg) { }
 		};
 
 	private:

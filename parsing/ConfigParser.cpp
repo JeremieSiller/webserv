@@ -1,36 +1,4 @@
 #include "ConfigParser.hpp"
-#include <arpa/inet.h>
-
-/**
- * @brief returns if string is a valid ip_address
- * 
- * @param ipAddress 
- * @return true 
- * @return false 
- */
-static bool	is_ip(const std::string &ipAddress)
-{
-	struct sockaddr_in sa;
-	int result = inet_pton(AF_INET, ipAddress.c_str(), &(sa.sin_addr));
-	return result != 0;
-}
-
-static bool is_directory(const std::string &path)
-{
-	struct stat buf;
-	if (stat(path.c_str(), &buf) != 0)
-		return (0);
-	return !S_ISREG(buf.st_mode);
-}
-
-static bool is_file(const std::string &path)
-{
-	struct stat buf;
-	if (stat(path.c_str(), &buf) != 0)
-		return (0);
-	return S_ISREG(buf.st_mode);
-}
-
 
 ConfigParser::ConfigParser(std::vector<ConfigToken> &tokens) :
     _tokens(tokens), _connections() {
@@ -56,6 +24,9 @@ public:
 		: std::runtime_error("unexpected token: \"" + content + "\"" + specific) { }
 };
 
+/**
+ * @brief removes all comments and line breaks from token list
+ */
 void	ConfigParser::_removeCommentsAndLineBreaks() {
 	std::vector<ConfigToken>::iterator	it = _tokens.begin();
 	while (it != _tokens.end()) {
@@ -67,6 +38,11 @@ void	ConfigParser::_removeCommentsAndLineBreaks() {
 	}
 }
 
+/**
+ * @brief sets the scope depth for all tokens 
+ * throws an error if a scope is not closed or there are
+ * too many closing scopes. 
+ */
 void    ConfigParser::_setScopes() {
 	std::vector<ConfigToken>::iterator	it = _tokens.begin();
 	int											scope = 0;
@@ -83,43 +59,136 @@ void    ConfigParser::_setScopes() {
 		throw ScopeNotClosed();
 }
 
-/**
- * @brief reads file /etc/hosts and searches for @param host 
- * @return std::string corresponding ip address
- */
-std::string ConfigParser::_getAddressFromHost(std::string const &host) {
-	std::ifstream						file("/etc/hosts");
-	std::string							r = "";
-	std::stringstream 					stream;
-	std::stringstream					tmp;
-	std::string							start_line;
-	std::istream_iterator<std::string>	start;
-	std::string							line;
-	if (!file)
-		return r;
-	stream << file.rdbuf();
-	while (std::getline(stream, line)) {
-		std::istream_iterator<std::string>	end;
-		tmp << line;
-		start = tmp;
-		start_line = *start;
-		while (start != end) {
-			if (*start == host) {
-				if (start != end) {
-					if (r != "" && is_ip(start_line)) {
-						throw std::runtime_error("duplicate symbols for hostname: " + host + " in /etc/hosts");
-					}
-					if (is_ip(start_line))
-						r = start_line;
-				}
-				tmp.clear();
-				break ;
-			}
-			start++;
-		}
-		tmp.clear();
+void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, location &l) {
+	size_t scope = it->scope();
+	l._upload = -1;
+	it++;
+	if (it->type() != ConfigToken::PATH) {
+		throw unexpectedToken(it->content(), ", location needs to have a path");
 	}
-	return r;
+	l._path = it->content();
+	it++;
+	if (it->scope() == scope) {
+		throw unexpectedToken(it->content(), ", location needs a scope, expected \"{\"");
+	}
+	while (it != _tokens.end() && it->scope() > scope) {
+		if (it->type() == ConfigToken::LOCATION) {
+			location	b;
+			_checkLocation(it, b);
+			l._locations.push_back(b);
+		} else if (it->type() == ConfigToken::ROOT) {
+			if (l._root != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", root can not be empty");
+			}
+			l._root = it->content();
+			if (!is_directory(l._root)) {
+				throw unexpectedToken(it->content(), ", root needs to be a valid directory");
+			}
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", root can not contain more than one path");
+			}
+		} else if (it->type() == ConfigToken::INDEX) {
+			if (!l._index.empty()) {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", index need atleast one arguement");
+			}
+			while (it->type() != ConfigToken::EOF_INSTRUCT && (it->type() == ConfigToken::STRING || it->type() == ConfigToken::PATH)) {
+				l._index.push_back(it->content());
+				it++;
+			}
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", index indetifier can not be a keyword, expected \";\"");
+			}
+		} else if (it->type() == ConfigToken::METHOD) {
+			if (!l._methods.empty()) {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", method need atleast one arguement");
+			}
+			while (it->type() != ConfigToken::EOF_INSTRUCT && (it->type() == ConfigToken::POST || it->type() == ConfigToken::DELTE || it->type() == ConfigToken::GET)) {
+				if (l._methods.insert(it->content()).second == false) {
+					throw unexpectedToken(it->content(), ", specific method can not be set twice");
+				}
+				it++;
+			}
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", method indetifier has to be method, expected \";\"");
+			}
+		} else if (it->type() == ConfigToken::UPLOAD_ENABLE) {
+			if (l._upload != -1) {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() != ConfigToken::OFF && it->type() != ConfigToken::ON) {
+				throw unexpectedToken(it->content(), ", upload needs to have paramter \'on\' or \'off\'");
+			}
+			if (it->type() == ConfigToken::ON) {
+				l._upload = true;
+			} else if (it->type() == ConfigToken::OFF) {
+				l._upload = false;
+			}
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", upload needs exaclty one arguement");
+			}
+		} else if (it->type() == ConfigToken::UPLOAD_PATH) {
+			if (l._upload_path != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", upload_path can not be empty");
+			}
+			l._upload_path = it->content();
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", upload_path can not contain more than one path");
+			}
+		} else if (it->type() == ConfigToken::CGI_PATH) {
+			if (l._cgi_path != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", _cgi_path can not be empty");
+			}
+			l._cgi_path = it->content();
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", _cgi_path can not contain more than one path");
+			}
+		} else if (it->type() == ConfigToken::CGI_EXTENSION) {
+			if (l._cgi_extension != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", _cgi_extension can not be empty");
+			}
+			l._cgi_extension = it->content();
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", _cgi_extension can not contain more than one path");
+			}
+		} else if (it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::EOF_INSTRUCT) {
+			throw unexpectedToken(it->content(), ", can not be in location scope");
+		} 
+		
+		it++;
+	}
+	if (l._upload == -1) {
+		l._upload = false;
+	}
 }
 
 void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connection &c) {
@@ -182,7 +251,7 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			if (it->type() != ConfigToken::INTEGER || (it->content()[0] != '5' && it->content()[0] != '4') || it->content().length() != 3 ) {
 				throw unexpectedToken(it->content(), ", error_page first arguement needs to be a valid error code (4XX or 5XX)");
 			}
-			error_code = std::stoi(it->content());
+			error_code = std::atoi(it->content().c_str());
 			it++;
 			if (it->type() == ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", error_page needs exactly two arguements (error code & path to file)");
@@ -191,7 +260,7 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 				throw unexpectedToken(it->content(), "could not find file");
 			}
 			if (s._error_pages[error_code] != "") {
-				throw unexpectedToken(std::to_string(error_code), ", can not set error_page twice");
+				throw unexpectedToken((it - 1)->content(), ", can not set error_page twice");
 			}
 			s._error_pages[error_code] = it->content();
 			it++;
@@ -200,8 +269,23 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			}
 		} else if (it->type() == ConfigToken::LOCATION) {
 			location l;
+			_checkLocation(it, l);
 			s._locations.push_back(l);
-			// s._locations[0]._locations.push_back(location());
+		} else if (it->type() == ConfigToken::MAX_BODY_SIZE) {
+			if (s._client_max_body_size != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", client_max_body_size can not be empty");
+			}
+			s._client_max_body_size = it->content();
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", client_max_body_size can not contain more than one arguement");
+			}
+		} else if (it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::EOF_INSTRUCT) {
+			throw unexpectedToken(it->content(), ", can not be in server scope");
 		}
 		it++;
 	}
@@ -230,7 +314,7 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 					}
 					try
 					{
-						c._port = std::stoi(it->content());
+						c._port = std::atoi(it->content().c_str());
 						if (c._port < 0 || c._port > 65535){
 							throw unexpectedToken(it->content(), ", not a valid PORT, needs to fit in a short");
 						}
@@ -247,7 +331,7 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 						std::cerr << "addr: " << c._address << std::endl;
 						throw unexpectedToken(it->content(), ", HOSTNAME can not be set twice for one connection");
 					}
-					c._address = _getAddressFromHost(it->content());
+					c._address = getAddressFromHost(it->content());
 					if (c._address == "" || !is_ip(c._address)) {
 						throw unexpectedToken(it->content(), ", not a valid HOSTNAME, format: X.X.X.X or in /etc/hosts");
 					}
@@ -273,7 +357,6 @@ void	ConfigParser::_checkConnection(std::vector<ConfigToken>::iterator &it) {
 	if (c._port == -1)
 		c._port = 80;
 	_connections.push_back(c);
-	// LOGN(it->content());
 }
 
 void	ConfigParser::_iterate() {

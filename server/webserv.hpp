@@ -5,6 +5,8 @@
 # include <vector>
 # include <sys/select.h>
 # include <map>
+# include <climits>
+# include <cstring>
 # include "connection.hpp"
 # include "client.hpp"
 # include "../parsing/ConfigParser.hpp"
