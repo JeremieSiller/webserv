@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/02/18 18:53:52 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/07 16:42:30 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include <arpa/inet.h>
 # include <unistd.h>
 # include "connection.hpp"
+# include "../request/Request.hpp"
 
 typedef int t_socket;
 
@@ -29,7 +30,7 @@ class Client
 		{
 			READING,
 			WRITING,
-			FINISHED
+			DIE
 		}clientstatus;
 
 		
@@ -37,10 +38,9 @@ class Client
 
 		t_socket					_client_socket;
 		struct sockaddr_in			_addr;
-		std::vector<std::string>	_requests;
+		Request						_request;
 		int							_status;
 		Connection					*_connection;
-		std::string					_request;
 
 	public:
 
@@ -52,13 +52,14 @@ class Client
 		clientstatus	getClientStatus() { return static_cast<clientstatus>(this->_status); }
 		void			setClientStatus(clientstatus cs) { this->_status = static_cast<int>(cs); }
 
-		
+		int				readRequest();
+		int				sendResponse();
 
 		Client &operator=(const Client &in)
 		{
 			this->_addr = in._addr;
 			this->_client_socket = in._client_socket;
-			this->_requests = in._requests;
+			this->_request = in._request;
 			this->_status = in._status;
 			return *this;
 		}
