@@ -3,27 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2022/03/08 15:41:48 by jhagedor         ###   ########.fr       */
-=======
-/*   Updated: 2022/03/08 14:01:50 by nschumac         ###   ########.fr       */
->>>>>>> f21a1ccd9efb6353fd2617d405a9c503945f59c6
+/*   Created: 2022/03/08 16:30:33 by jhagedor          #+#    #+#             */
+/*   Updated: 2022/03/08 16:31:13 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 # pragma once
 
 # include <iostream>
 # include <map>
 # include <vector>
-<<<<<<< HEAD
-
-
-=======
->>>>>>> f21a1ccd9efb6353fd2617d405a9c503945f59c6
 
 class Request {
 	
@@ -72,13 +64,11 @@ class Request {
 		parseState							_ps;
 
 	private:
-<<<<<<< HEAD
 		/* Parsing first line in request message */
 		int		parseFirstLine(const std::string& line);
 		int		readMethod(const std::string& line);
 		int		readPath(const std::string& line, int i);
 		int		readVersion(const std::string& line, int i);
-=======
 		/*
 		** parses everything
 		*/
@@ -88,7 +78,6 @@ class Request {
 		** Integrity_check
 		*/
 		int		_integrityCheck();
->>>>>>> f21a1ccd9efb6353fd2617d405a9c503945f59c6
 		
 		/*** Available HTTP methods ***/
 		static	std::vector<std::string>	methods;
@@ -108,7 +97,6 @@ class Request {
 			return *this;
 		}
 		
-<<<<<<< HEAD
 		/* Getter functions */
 		std::string							getMethod() const;
 		std::string							getPath() const;
@@ -124,9 +112,7 @@ class Request {
 		std::string							readValue(const std::string &str);
 
 		static std::vector<std::string>		initMethods();
-};
 
-=======
 		/*** Getter functions ***/
 		std::string const &							getMethod() { return this->_method; }
 		std::string const &							getPath() { return this->_path; }
@@ -137,4 +123,3 @@ class Request {
 		requestTypes						getType() { return this->_type; }
 		void								append(const char str[], int size);
 };
->>>>>>> f21a1ccd9efb6353fd2617d405a9c503945f59c6
