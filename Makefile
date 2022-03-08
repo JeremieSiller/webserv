@@ -12,7 +12,8 @@ SRC =	main.cpp					\
 		server/connection.cpp		\
 		server/location.cpp			\
 		server/server.cpp			\
-		server/webserv.cpp
+		server/webserv.cpp			\
+		request/Request.cpp
 
 OBJ = $(SRC:.cpp=.o)
 

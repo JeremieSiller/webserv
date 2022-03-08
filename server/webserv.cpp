@@ -62,7 +62,7 @@ void	webserv::_initSets()
 	{
 		if ((*itr)->getClientStatus() == Client::READING)
 			FD_SET((*itr)->getSocket(), &this->_readfds);
-		else if ((*itr)->getClientStatus() == Client::WRITING)
+		else if ((*itr)->getClientStatus() == Client::WRITING || (*itr)->getClientStatus() == Client::DIE)
 			FD_SET((*itr)->getSocket(), &this->_writefds);
 		else
 			this->_removeClient(itr);
@@ -83,7 +83,8 @@ void webserv::run()
 
 		timeout.tv_sec = 10;
 		timeout.tv_usec = 0;
-		if ((select_ret = select(this->_maxfds + 1, &this->_readfds, &this->_writefds, NULL, &timeout)) == -1)
+		select_ret = select(this->_maxfds + 1, &this->_readfds, &this->_writefds, NULL, &timeout);
+		if (select_ret == -1)
 		{
 			perror("select");
 			CONNECTION_ERROR("Select Error");
@@ -98,38 +99,33 @@ void webserv::run()
 					{
 						this->_clients.push_back((*itr)->newAccept());
 						this->_clients.back()->setClientStatus(Client::READING);
-
 					} catch(std::exception &e)
 					{
 						std::cout << e.what() << std::endl;
 					}
 				}
 			}
+
 			for (std::vector<Client*>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // we can read from client
 				{
-					// HIER MUSS EINGELESEN WERDEN, KANNST DU AUCH IN CLIENT NE FUNKTION MACHEN
-					// @JONAS
-					char buffer[4096];
-					std::memset(buffer, 0, 4096);
-					int chars = recv((*itr)->getSocket(), buffer, 4096, 0); // unused ?!
-					std::cout << "Request: \n" <<  buffer << std::endl << std::endl;
-					
-					// set writing state to make sure we can answer
-					(*itr)->setClientStatus(Client::WRITING);
-
+					// Function call sets correct status
+					// if Client is DIE check what needs to be written
+					if ((*itr)->readRequest() <= 0) // if it returns 0 or -1 | close socket
+					{
+						this->_removeClient(itr);
+						continue;
+					}
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
 				{
-					// HIER WERDEN DIE ANTOWRTEN GESCHICKT
-
-					// @JONAS
-					std::cout << "response sent" << std::endl;
-
-					write((*itr)->getSocket(), "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 11\n\nHello world", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 11\n\nHello world"));
-					// Set reading after response
-					(*itr)->setClientStatus(Client::READING);
+					// either client status is DIE or WRITE which is the same
+					if (!(*itr)->sendResponse())
+					{
+						std::cout << "response failed" << std::endl;
+						this->_removeClient(itr);
+					}
 				}
 			}
 		}
