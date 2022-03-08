@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/14 20:18:46 by jsiller           #+#    #+#             */
-/*   Updated: 2022/02/18 18:57:36 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/07 16:35:43 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 # include <sys/socket.h>
 # include <unistd.h>
 # include "../parsing/ConfigParser.hpp"
+# include "../request/Request.hpp"
 
 class Server {
 	private:
@@ -42,6 +43,10 @@ class Server {
 		}
 
 		std::string custommessage() { return this->_server_name[0]; }
+		
+		// should return op codes
+		// depending on this server will formulate response
+		int	doRequest(Request const &req);
 
 		~Server() {};
 };
