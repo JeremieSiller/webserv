@@ -99,7 +99,6 @@ void webserv::run()
 					{
 						this->_clients.push_back((*itr)->newAccept());
 						this->_clients.back()->setClientStatus(Client::READING);
-
 					} catch(std::exception &e)
 					{
 						std::cout << e.what() << std::endl;
@@ -122,7 +121,11 @@ void webserv::run()
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
 				{
 					// either client status is DIE or WRITE which is the same
-					(*itr)->sendResponse();
+					if (!(*itr)->sendResponse())
+					{
+						std::cout << "response failed" << std::endl;
+						this->_removeClient(itr);
+					}
 				}
 			}
 		}

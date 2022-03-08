@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/07 16:45:43 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/08 14:01:50 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 # include <iostream>
 # include <map>
+# include <vector>
 
 class Request {
 	
@@ -26,31 +27,57 @@ class Request {
 			INVALID
 			
 		}requestTypes;
+		
 
+	private:
+
+		//https://www.tutorialspoint.com/http/http_requests.htm
+		typedef enum t_parseState
+		{
+			RequestLineMethod,
+
+			/*
+			** Absolute URI, Relative URI, * maybe
+			** Absolute path cannot be emypty if none is given it is INVALID
+			*/
+			RequestLineURI,
+			RequestLineHttpVersion,
+			
+			RequestHeaderStart,
+			RequestHeaderName,
+			RequestHeaderSpace,
+			RequestHeaderOptions,
+
+			RequestBodyStart,
+			RequestBody
+		} parseState;
 
 	private:
 		std::string							_method;
 		std::string							_path;
 		std::string							_version;
 		std::map<std::string, std::string>	_headers;
-		std::string							_body;
-		int									_ret;
-		int									_port;
-		req									_type;
+		std::vector<char>					_body;
+		std::string							_serverName;
+		requestTypes						_type;
+		parseState							_ps;
 
 	private:
-		/*** Parsing first line in request message ***/
-		int		readFirstLine(const std::string& line);
-		int		readMethod(const std::string& line, int i);
-		int		readPath(const std::string& line, int i);
-		int		readVersion(const std::string& line, int i);
-		int		parse(const std::string& str);
+		/*
+		** parses everything
+		*/
+		int		_parse(const char str[], int size);
+		
+		/*
+		** Integrity_check
+		*/
+		int		_integrityCheck();
 		
 		/*** Available HTTP methods ***/
 		static	std::vector<std::string>	methods;
 
 	public:
-		Request(const char str[] = NULL, int size = 0) {};
+		Request(const char str[] = NULL, int size = 0);
 		~Request() {};
 		
 		Request &operator=(Request const &in)
@@ -60,22 +87,17 @@ class Request {
 			this->_version = in._version;
 			this->_headers= in._headers;
 			this->_body= in._body;
-			this->_ret = in._ret;
-			this->_port = in._port;
+			this->_serverName = in._serverName;
+			return *this;
 		}
 		
 		/*** Getter functions ***/
-		std::string							getMethod();
-		std::string							getPath();
-		std::string							getVersion();
-		std::map<std::string, std::string>	getHeaders();
-		std::string							getBody();
-		int									getRet();
-		int									getPort();
+		std::string const &							getMethod() { return this->_method; }
+		std::string const &							getPath() { return this->_path; }
+		std::string const &							getVersion() { return this->_version; }
+		std::map<std::string, std::string> const &	getHeaders() { return this->_headers; }
+		std::string const &							getServerName() { return this->_serverName;}
 
-
-		static std::vector<std::string>		initMethods();
-		
-		requestTypes						getType();
-		void								append(const char *str, int size);
+		requestTypes						getType() { return this->_type; }
+		void								append(const char str[], int size);
 };
