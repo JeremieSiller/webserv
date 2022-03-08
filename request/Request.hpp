@@ -6,7 +6,7 @@
 /*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/08 16:30:33 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/08 16:31:13 by jhagedor         ###   ########.fr       */
+/*   Updated: 2022/03/08 18:12:30 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,11 +64,7 @@ class Request {
 		parseState							_ps;
 
 	private:
-		/* Parsing first line in request message */
-		int		parseFirstLine(const std::string& line);
-		int		readMethod(const std::string& line);
-		int		readPath(const std::string& line, int i);
-		int		readVersion(const std::string& line, int i);
+
 		/*
 		** parses everything
 		*/
@@ -96,22 +92,6 @@ class Request {
 			this->_serverName = in._serverName;
 			return *this;
 		}
-		
-		/* Getter functions */
-		std::string							getMethod() const;
-		std::string							getPath() const;
-		std::string							getVersion() const;
-		std::map<std::string, std::string>	getHeaders() const;
-		std::string							getBody() const;
-		int									getRet() const;
-		int									getPort() const;
-
-		int									parse(const std::string &str);
-		std::string							nextLine(const std::string &str, size_t &i);
-		std::string							readKey(const std::string &str);
-		std::string							readValue(const std::string &str);
-
-		static std::vector<std::string>		initMethods();
 
 		/*** Getter functions ***/
 		std::string const &							getMethod() { return this->_method; }
