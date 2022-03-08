@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/03/07 16:42:30 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/08 13:38:24 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ class Client
 
 		int				readRequest();
 		int				sendResponse();
+		Request &	getRequest() { return this->_request; }
 
 		Client &operator=(const Client &in)
 		{

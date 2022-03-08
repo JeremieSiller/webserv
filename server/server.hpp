@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/14 20:18:46 by jsiller           #+#    #+#             */
-/*   Updated: 2022/03/07 16:35:43 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/08 14:35:03 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,14 @@ class Server {
 		// should return op codes
 		// depending on this server will formulate response
 		int	doRequest(Request const &req);
+		
+		bool operator== (std::string const &in )
+		{
+			for (unsigned int i = 0; i < _server_name.size(); i++)
+				if (in == _server_name[i])
+					return true;
+			return false;
+		}
 
 		~Server() {};
 };

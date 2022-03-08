@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 12:05:03 by jsiller           #+#    #+#             */
-/*   Updated: 2022/02/18 18:50:30 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/08 14:34:31 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,17 @@ Connection::Connection(const unsigned short &port, const std::string &address) :
 		CONNECTION_ERROR("Connection Bind: you cannot bind this address");
 
 	if (listen(this->_socket, -1) == -1)
-		CONNECTION_ERROR("Connection Listen: could'nt do it bitch");
+		CONNECTION_ERROR("Connection Listen: couldn't do it bitch");
+}
+
+Server & Connection::getServer(std::string const &serverName)
+{
+	for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	{
+		if (*it == serverName || (serverName == "localhost" && *it == "127.0.0.1"))
+			return *it;
+	}
+	return (*this->_servers.begin());
 }
 
 Client *Connection::newAccept()
