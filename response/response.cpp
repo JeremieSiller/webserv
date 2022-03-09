@@ -177,7 +177,7 @@ void	response::_build() {
 
 /**
  * @brief	pushes the eond of line initializer of http (\r\n) 
- * 			to the end of the vector 
+ * to the end of the vector 
  */
 void	response::_pushEndOfLine() {
 	_bytes.push_back('\r');
@@ -186,12 +186,27 @@ void	response::_pushEndOfLine() {
 
 /**
  * @brief	build the first line of the response 
- * 			looking like e.g. this: "HTTP/1.1 200 ok\r\n"
+ * looking like e.g. this: "HTTP/1.1 200 ok\r\n"
  */
 void	response::_buildFirstLine() {
 	_bytes.insert(_bytes.begin(), _version.begin(), _version.end());
 	_bytes.push_back(' ');
 	std::string reason = getReason(_statsusCode);
 	_bytes.insert(_bytes.end(), reason.begin(), reason.end());
+	_pushEndOfLine();
+}
+
+/**
+ * @brief adds header to response
+ * e.g. "Server: webserv\r\n" or "Connection: keep-alive"
+ * 
+ * @param attribute the directive keyword
+ * @param value the vaue to be put after the keyword
+ */
+void	response::add_header(const std::string &attribute, const std::string &value) {
+	_bytes.insert(_bytes.end(), attribute.begin(), attribute.end());
+	_bytes.push_back(':');
+	_bytes.push_back(' ');
+	_bytes.insert(_bytes.end(), value.begin(), value.end());
 	_pushEndOfLine();
 }
