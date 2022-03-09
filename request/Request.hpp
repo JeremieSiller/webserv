@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/09 14:06:30 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/09 15:21:27 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <vector>
 # include <stdlib.h>
 
+# include "../response/errorcodes.hpp"
 
 class Request {
 	
@@ -30,8 +31,6 @@ class Request {
 			INVALID
 			
 		}requestTypes;
-		
-
 	private:
 
 		//https://www.tutorialspoint.com/http/http_requests.htm
@@ -44,7 +43,19 @@ class Request {
 			** Absolute path cannot be emypty if none is given it is INVALID
 			*/
 			RequestLineURI,
-			RequestLineHttpVersion,
+			/*
+			** goes through each character checks if its there
+			** x is representation of number, so in our case 1.1
+			*/
+			RequestLineHTTPH,
+			RequestLineHTTPHT,
+			RequestLineHTTPHTT,
+			RequestLineHTTPHTTP,
+			RequestLineHTTPHTTP_,
+			RequestLineHTTPHTTP_x,
+			RequestLineHTTPHTTP_x_,
+			RequestLineHTTPHTTP_x_x,
+			RequestLineCRLF,
 			
 			RequestHeaderStart,
 			RequestHeaderName,
@@ -54,6 +65,7 @@ class Request {
 			RequestBodyStart,
 			RequestBody
 		} parseState;
+		
 
 	private:
 		std::string							_method;
@@ -66,6 +78,15 @@ class Request {
 		parseState							_ps;
 
 	private:
+	
+		int		_iscrlf(const char *str, int &idx);
+		int		_isalpha(char c);
+		
+		/*
+		** type is boolean true for headerName
+		** false for headerValue
+		*/
+		int		_isSpecial(char c, bool type);
 
 		/*
 		** parses everything
