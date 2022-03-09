@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/02/21 15:07:31 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/08 14:28:49 by nschumac         ###   ########.fr       */
+/*   Created: 2022/03/08 16:04:49 by jhagedor          #+#    #+#             */
+/*   Updated: 2022/03/08 19:18:01 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,6 +107,8 @@ int	Request::_parse(const char str[], int size)
 			case RequestHeaderName:
 				if (str[i] == ':')
 				{
+					if (this->_headers.count(headerName)) // header already in map invalid shit
+						return -1;
 					this->_headers.insert(std::pair<std::string, std::string>(headerName, ""));
 					this->_ps = RequestHeaderSpace;
 				}

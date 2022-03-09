@@ -6,9 +6,10 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/08 14:48:11 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/09 14:06:30 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 # pragma once
 
@@ -63,6 +64,7 @@ class Request {
 		parseState							_ps;
 
 	private:
+
 		/*
 		** parses everything
 		*/
@@ -90,7 +92,7 @@ class Request {
 			this->_serverName = in._serverName;
 			return *this;
 		}
-		
+
 		/*** Getter functions ***/
 		std::string const &							getMethod() { return this->_method; }
 		std::string const &							getPath() { return this->_path; }
