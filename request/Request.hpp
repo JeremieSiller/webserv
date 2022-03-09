@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/03/08 16:30:33 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/08 18:12:30 by jhagedor         ###   ########.fr       */
+/*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
+/*   Updated: 2022/03/09 14:06:30 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,7 @@ class Request {
 		std::string const &							getVersion() { return this->_version; }
 		std::map<std::string, std::string> const &	getHeaders() { return this->_headers; }
 		std::string const &							getServerName() { return this->_serverName;}
+		std::vector<char> const &					getBody() { return this->_body;}
 
 		requestTypes						getType() { return this->_type; }
 		void								append(const char str[], int size);

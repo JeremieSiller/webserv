@@ -117,6 +117,11 @@ void webserv::run()
 						this->_removeClient(itr);
 						continue;
 					}
+					std::cout << "----------------" << std::endl;
+					std::cout << "size of Message: " << (*itr)->getRequest().getBody().size();
+					for (int i = 0; i < (*itr)->getRequest().getBody().size(); i++)
+						std::cout << (*itr)->getRequest().getBody()[i];
+					std::cout << "----------------" << std::endl;
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
 				{
