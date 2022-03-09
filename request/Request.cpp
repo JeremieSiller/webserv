@@ -6,7 +6,7 @@
 /*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/08 16:04:49 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/08 19:18:01 by jhagedor         ###   ########.fr       */
+/*   Updated: 2022/03/09 14:44:27 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,9 @@ int Request::_integrityCheck()
 		return -3;
 	if (this->_body.size() == 0) // invalid structure missing \r\n\r\n
 		return -4;
-
 	if (this->_headers.count("Content-Length")) // check for body size
 		if (atoi(this->_headers["Content-Length"].c_str()) != (int)this->_body.size() - 1) // need to read again
 			return 1;
-
 	if (!this->_headers.count("Host")) // invalid always need host, ITHINK
 		return 0;
 	if (this->_headers["Host"].find(":")) // i think its always Host: SERVERNAME:PORT
@@ -75,12 +73,16 @@ int	Request::_parse(const char str[], int size)
 			case RequestLineMethod:
 				if (str[i] == ' ')
 					this->_ps = RequestLineURI;
+				else if (str[i] == '\r')
+					return 0;
 				else
 					this->_method += str[i];
 				break;
 			case RequestLineURI:
 				if (str[i] == ' ')
 					this->_ps = RequestLineHttpVersion;
+				else if (str[i] == '\r')
+					return 0;
 				else
 					this->_path += str[i];
 				break;
@@ -93,7 +95,7 @@ int	Request::_parse(const char str[], int size)
 			case RequestHeaderStart:
 				if (str[i] == '\n')
 				{
-					if (headerName == "" && str[i + 1] == '\n')
+					if (headerName == "" && str[i + 1] == '\r' && str[i + 2] == '\n') 
 						this->_ps = RequestBodyStart;
 					else
 					{
@@ -102,7 +104,7 @@ int	Request::_parse(const char str[], int size)
 					}
 				}
 				else
-					return 0; // iNVALID
+					return -1; //INVALID
 				break;
 			case RequestHeaderName:
 				if (str[i] == ':')
