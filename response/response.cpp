@@ -163,7 +163,7 @@ response::~response() { }
  * @return int returns the value of the write-call
  */
 int	response::write_response(const int &fd) {
-	_pushEndOfLine();
+	add_body(std::vector<char>());
 	return (write(fd, _bytes.begin().base(), _bytes.size()));
 }
 
@@ -177,7 +177,7 @@ void	response::_build() {
 
 /**
  * @brief	pushes the eond of line initializer of http (\r\n) 
- * 			to the end of the vector 
+ * to the end of the vector 
  */
 void	response::_pushEndOfLine() {
 	_bytes.push_back('\r');
@@ -186,7 +186,7 @@ void	response::_pushEndOfLine() {
 
 /**
  * @brief	build the first line of the response 
- * 			looking like e.g. this: "HTTP/1.1 200 ok\r\n"
+ * looking like e.g. this: "HTTP/1.1 200 ok\r\n"
  */
 void	response::_buildFirstLine() {
 	_bytes.insert(_bytes.begin(), _version.begin(), _version.end());
@@ -194,4 +194,29 @@ void	response::_buildFirstLine() {
 	std::string reason = getReason(_statsusCode);
 	_bytes.insert(_bytes.end(), reason.begin(), reason.end());
 	_pushEndOfLine();
+}
+
+/**
+ * @brief adds header to response
+ * e.g. "Server: webserv\r\n" or "Connection: keep-alive"
+ * 
+ * @param attribute the directive keyword
+ * @param value the vaue to be put after the keyword
+ */
+void	response::add_header(const std::string &attribute, const std::string &value) {
+	_bytes.insert(_bytes.end(), attribute.begin(), attribute.end());
+	_bytes.push_back(':');
+	_bytes.push_back(' ');
+	_bytes.insert(_bytes.end(), value.begin(), value.end());
+	_pushEndOfLine();
+}
+
+/**
+ * @brief adds the body to the end of the reponse
+ * automatically inserts a EOL so the headers end is defined with two EOL's (\r\n\r\n)
+ * @param _body a vector that contains all bytes to add to the body, use empty vector if no body is present
+ */
+void	response::add_body(const std::vector<char> &_body) {
+	_pushEndOfLine();
+	_bytes.insert(_bytes.end(), _body.begin(), _body.end());
 }
