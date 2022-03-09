@@ -163,7 +163,7 @@ response::~response() { }
  * @return int returns the value of the write-call
  */
 int	response::write_response(const int &fd) {
-	_pushEndOfLine();
+	add_body(std::vector<char>());
 	return (write(fd, _bytes.begin().base(), _bytes.size()));
 }
 
@@ -209,4 +209,14 @@ void	response::add_header(const std::string &attribute, const std::string &value
 	_bytes.push_back(' ');
 	_bytes.insert(_bytes.end(), value.begin(), value.end());
 	_pushEndOfLine();
+}
+
+/**
+ * @brief adds the body to the end of the reponse
+ * automatically inserts a EOL so the headers end is defined with two EOL's (\r\n\r\n)
+ * @param _body a vector that contains all bytes to add to the body, use empty vector if no body is present
+ */
+void	response::add_body(const std::vector<char> &_body) {
+	_pushEndOfLine();
+	_bytes.insert(_bytes.end(), _body.begin(), _body.end());
 }
