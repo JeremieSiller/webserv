@@ -6,7 +6,7 @@
 /*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/08 16:04:49 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/09 14:44:27 by jhagedor         ###   ########.fr       */
+/*   Updated: 2022/03/09 16:08:07 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,16 +31,16 @@ int Request::_integrityCheck()
 		return -1;
 	if (this->_version != "HTTP/1.1")
 		return -2;
-	if (this->_path == "") // cannot be empty has to have root at least
+	if (this->_path == "") // cannot be empty has to have root at least (Jonas: Should be interpreted as / I think)
 		return -3;
 	if (this->_body.size() == 0) // invalid structure missing \r\n\r\n
 		return -4;
 	if (this->_headers.count("Content-Length")) // check for body size
-		if (atoi(this->_headers["Content-Length"].c_str()) != (int)this->_body.size() - 1) // need to read again
+		if (atoi(this->_headers["Content-Length"].c_str()) != (int)this->_body.size() - 1) // need to read again (Does that mean we have not reat the full content?)
 			return 1;
-	if (!this->_headers.count("Host")) // invalid always need host, ITHINK
+	if (!this->_headers.count("Host")) // invalid always need host, ITHINK (Not if we have the full path I think)
 		return 0;
-	if (this->_headers["Host"].find(":")) // i think its always Host: SERVERNAME:PORT
+	if (this->_headers["Host"].find(":")) // i think its always Host: SERVERNAME:PORT // Check on this
 		this->_serverName = std::string(this->_headers["Host"].substr(0, this->_headers["Host"].find(":")));
 	else
 		this->_serverName = std::string(this->_headers["Host"]);
