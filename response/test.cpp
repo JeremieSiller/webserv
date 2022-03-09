@@ -25,6 +25,6 @@ int	main(void) {
 	std::vector<char> numbers(size);
 	int fd = open("index.html", O_RDONLY);
 	read(fd, numbers.begin().base(), size);
-	r.add_body(numbers);
+	// r.add_body(numbers);
 	r.write_response(1);
 }

@@ -14,6 +14,7 @@ private:
 	const int					&_statsusCode;
 	const std::string			&_version;
 	std::vector<char>			_bytes;
+	bool						_has_body;
 	void	_build();
 	void	_buildFirstLine();
 	void	_pushEndOfLine();

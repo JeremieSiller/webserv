@@ -146,7 +146,7 @@ static std::string const getReason(const int &code) {
  * @param status  sets the status code of the reponse, e.g. 200
  * @param version sets the http version, standard value is HTTP/1.1
  */
-response::response(const int &status, const std::string &version) : _statsusCode(status), _version(version), _bytes() {
+response::response(const int &status, const std::string &version) : _statsusCode(status), _version(version), _bytes() , _has_body(false) {
 	_build();
 }
 
@@ -163,7 +163,9 @@ response::~response() { }
  * @return int returns the value of the write-call
  */
 int	response::write_response(const int &fd) {
-	add_body(std::vector<char>());
+	if (_has_body == false) {
+		_pushEndOfLine();
+	}
 	return (write(fd, _bytes.begin().base(), _bytes.size()));
 }
 
@@ -214,9 +216,10 @@ void	response::add_header(const std::string &attribute, const std::string &value
 /**
  * @brief adds the body to the end of the reponse
  * automatically inserts a EOL so the headers end is defined with two EOL's (\r\n\r\n)
- * @param _body a vector that contains all bytes to add to the body, use empty vector if no body is present
+ * @param _body a vector that contains all bytes to add to the body
  */
 void	response::add_body(const std::vector<char> &_body) {
 	_pushEndOfLine();
+	_has_body = true;
 	_bytes.insert(_bytes.end(), _body.begin(), _body.end());
 }
