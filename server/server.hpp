@@ -26,12 +26,12 @@
 class Server {
 	private:
 
-		const std::vector<std::string>		_server_name;	//server_names the server listens to.
-		const std::map<int, std::string>	_error_pages;
-		const std::vector<location>			_locations;
-		const size_t						_max_body_size;	// max upload file size. Size identifier needs to be handled
-		const std::string					_root; 			//root where to finde files -> will be passed on to location which will than append its own root (I guess xD)
-		const char							_autoindex;
+		std::vector<std::string>		_server_name;	//server_names the server listens to.
+		std::map<int, std::string>		_error_pages;
+		std::vector<location>			_locations;
+		size_t							_max_body_size;	// max upload file size. Size identifier needs to be handled
+		std::string						_root; 			//root where to finde files -> will be passed on to location which will than append its own root (I guess xD)
+		char							_autoindex;
 
 	
 	public:

@@ -61,41 +61,9 @@ Lexer<Token>::Lexer(std::string const &_path)
 }
 
 template<typename Token>
-class Lexer<Token>::FileNotFound : public std::exception {
-private:
-	std::string	_msg;
+class Lexer<Token>::FileNotFound : public std::runtime_error {
 public:
-	FileNotFound(std::string const &path) : _msg(FILE_NOT_FOUND) {
-		_msg += path;
-	}
-	const char *what() const throw () {
-		return (_msg.c_str());
-	}
-	#ifdef __linux__
-	~FileNotFound() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW { } // dont ask me why but compiler says I need it // (different syntax on macos :|)
-	#endif
-	#ifdef __APPLE__
-	~FileNotFound() _NOEXCEPT {};
-	#endif
-};
-
-template<class Token>
-class Lexer<Token>::UnexpectedToken : public std::exception {
-private:
-	std::string	_msg;
-public:
-	UnexpectedToken(std::string const &content) : _msg() { 
-		_msg = "Error found unexpected Token near " + content;
-	}
-	const char *what() const throw () {
-		return (_msg.c_str());
-	}
-	#ifdef __linux__
-	~UnexpectedToken() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW { }
-	#endif
-	#ifdef __APPLE__
-	~UnexpectedToken() _NOEXCEPT { }
-	#endif
+	FileNotFound(std::string const &path) : std::runtime_error(path) { }
 };
 
 template<typename Token>

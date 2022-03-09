@@ -16,6 +16,8 @@
 # include <iostream>
 # include <map>
 # include <vector>
+# include <stdlib.h>
+
 # include "../response/errorcodes.hpp"
 
 class Request {

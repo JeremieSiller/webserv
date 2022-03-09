@@ -18,7 +18,7 @@ static std::string const getReason(const int &code) {
 	case 104:
 		return "104 Early Hints";
 	case 200:
-		return "200 Ok";
+		return "200 OK";
 	case 201:
 		return "201 Created";
 	case 202:
