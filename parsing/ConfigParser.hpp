@@ -33,7 +33,7 @@ typedef struct s_location {
 
 typedef struct s_server {
     std::vector<location>                _locations;
-    std::vector<std::string>            _server_names;
+    std::vector<std::string>            _server_names; //compare with host
     std::map<int, std::string>          _error_pages;
     std::string                         _root;
     std::string                         _client_max_body_size;
