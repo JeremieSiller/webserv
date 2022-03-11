@@ -3,12 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/03/08 16:04:49 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/09 15:35:00 by nschumac         ###   ########.fr       */
+/*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
+/*   Updated: 2022/03/09 17:07:38 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+
 
 #include "Request.hpp"
 
@@ -31,19 +33,10 @@ int Request::_integrityCheck()
 		return -1;
 	if (this->_version != "HTTP/1.1")
 		return -2;
-	if (this->_path == "") // cannot be empty has to have root at least
-		return -3;
+	if (this->_path == "")
+		this->_path = "/";
 	if (this->_body.size() == 0) // invalid structure missing \r\n\r\n
 		return -4;
-	if (this->_headers.count("Content-Length")) // check for body size
-		if (atoi(this->_headers["Content-Length"].c_str()) != (int)this->_body.size() - 1) // need to read again
-			return 1;
-	if (!this->_headers.count("Host")) // invalid always need host, ITHINK
-		return 0;
-	if (this->_headers["Host"].find(":")) // i think its always Host: SERVERNAME:PORT
-		this->_serverName = std::string(this->_headers["Host"].substr(0, this->_headers["Host"].find(":")));
-	else
-		this->_serverName = std::string(this->_headers["Host"]);
 	return 2;
 }
 

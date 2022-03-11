@@ -91,6 +91,8 @@ void webserv::run()
 		}
 		else if (select_ret >= 1) // successfull
 		{
+			// What happens in this block?
+
 			for (std::vector<Connection*>::iterator itr = this->_connections.begin(); itr != this->_connections.end(); itr++)
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // new client on this connection
@@ -106,6 +108,8 @@ void webserv::run()
 				}
 			}
 
+			// What happens in this block?
+			
 			for (std::vector<Client*>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // we can read from client
