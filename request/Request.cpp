@@ -31,12 +31,12 @@ int Request::_integrityCheck()
 {
 	if (this->_method != "GET" && this->_method != "POST" && this->_method != "DELETE")
 		return -1;
-	if (this->_version != "HTTP/1.1")
-		return -2;
+	// if (this->_version != "HTTP/1.1")
+	// 	return -2;
 	if (this->_path == "")
 		this->_path = "/";
 	if (this->_body.size() == 0) // invalid structure missing \r\n\r\n
-		return -4;
+		return 1;
 	return 2;
 }
 

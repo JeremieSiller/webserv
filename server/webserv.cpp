@@ -141,11 +141,16 @@ void webserv::run()
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
 				{
 					// either client status is DIE or WRITE which is the same
+					// maybe parse request properly
+
+					//-> create and parse response! -> chose location
 					if (!(*itr)->sendResponse())
 					{
 						std::cout << "response failed" << std::endl;
 						this->_removeClient(itr);
 					}
+					//should only clear response / request
+					this->_removeClient(itr);
 				}
 			}
 		}
