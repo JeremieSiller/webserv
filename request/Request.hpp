@@ -6,7 +6,7 @@
 /*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/15 14:44:01 by jhagedor         ###   ########.fr       */
+/*   Updated: 2022/03/15 18:50:04 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,6 +139,6 @@ class Request {
 		// new function to interprete requests
 		int									findHostname();
 		int									findLocation();
-		int									prepareInterpreter() const;
-		std::string 						uriDecode(std::string value) const;
+		int									prepareInterpreter();
+		std::string 						uriDecode(std::string value);
 };
