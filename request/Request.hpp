@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/03/08 16:30:33 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/08 18:12:30 by jhagedor         ###   ########.fr       */
+/*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
+/*   Updated: 2022/03/15 18:50:04 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,9 @@
 # include <iostream>
 # include <map>
 # include <vector>
+# include <stdlib.h>
+
+# include "../response/errorcodes.hpp"
 
 class Request {
 	
@@ -28,8 +31,6 @@ class Request {
 			INVALID
 			
 		}requestTypes;
-		
-
 	private:
 
 		//https://www.tutorialspoint.com/http/http_requests.htm
@@ -42,7 +43,19 @@ class Request {
 			** Absolute path cannot be emypty if none is given it is INVALID
 			*/
 			RequestLineURI,
-			RequestLineHttpVersion,
+			/*
+			** goes through each character checks if its there
+			** x is representation of number, so in our case 1.1
+			*/
+			RequestLineHTTPH,
+			RequestLineHTTPHT,
+			RequestLineHTTPHTT,
+			RequestLineHTTPHTTP,
+			RequestLineHTTPHTTP_,
+			RequestLineHTTPHTTP_x,
+			RequestLineHTTPHTTP_x_,
+			RequestLineHTTPHTTP_x_x,
+			RequestLineCRLF,
 			
 			RequestHeaderStart,
 			RequestHeaderName,
@@ -53,6 +66,16 @@ class Request {
 			RequestBody
 		} parseState;
 
+		typedef struct interpreter_info
+		{
+			std::string				host;
+			std::string				port;
+			std::string				abs_path;
+			std::string				query;
+			std::string				fragment;
+		}			t_interpreter_info;
+		
+
 	private:
 		std::string							_method;
 		std::string							_path;
@@ -62,8 +85,18 @@ class Request {
 		std::string							_serverName;
 		requestTypes						_type;
 		parseState							_ps;
+		t_interpreter_info					_interpreter_info;
 
 	private:
+	
+		int		_iscrlf(const char *str, int &idx);
+		int		_isalpha(char c);
+		
+		/*
+		** type is boolean true for headerName
+		** false for headerValue
+		*/
+		int		_isSpecial(char c, bool type);
 
 		/*
 		** parses everything
@@ -99,7 +132,13 @@ class Request {
 		std::string const &							getVersion() { return this->_version; }
 		std::map<std::string, std::string> const &	getHeaders() { return this->_headers; }
 		std::string const &							getServerName() { return this->_serverName;}
+		std::vector<char> const &					getBody() { return this->_body;}
 
 		requestTypes						getType() { return this->_type; }
 		void								append(const char str[], int size);
+		// new function to interprete requests
+		int									findHostname();
+		int									findLocation();
+		int									prepareInterpreter();
+		std::string 						uriDecode(std::string value);
 };

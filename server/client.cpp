@@ -12,7 +12,7 @@
 
 #include "client.hpp"
 #include <unistd.h>
-
+#include <string.h>
 
 Client::Client(t_socket client_socket, struct sockaddr_in addr, Connection *connection) : _client_socket(client_socket), _addr(addr),  _status(), _connection(connection)
 {

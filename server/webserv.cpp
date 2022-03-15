@@ -91,6 +91,8 @@ void webserv::run()
 		}
 		else if (select_ret >= 1) // successfull
 		{
+			// What happens in this block?
+
 			for (std::vector<Connection*>::iterator itr = this->_connections.begin(); itr != this->_connections.end(); itr++)
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // new client on this connection
@@ -106,6 +108,8 @@ void webserv::run()
 				}
 			}
 
+			// What happens in this block?
+			
 			for (std::vector<Client*>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // we can read from client
@@ -117,6 +121,22 @@ void webserv::run()
 						this->_removeClient(itr);
 						continue;
 					}
+					std::cout << "----------------" << std::endl;
+					std::cout << "size of Message: " << (*itr)->getRequest().getBody().size();
+					for (int i = 0; i < (*itr)->getRequest().getBody().size(); i++)
+						std::cout << (*itr)->getRequest().getBody()[i];
+					std::cout << "----------------" << std::endl;
+
+					// // Do we want to interpret the request here?
+					// if ((*itr)->getRequest().findHostname() <= 0) // if it returns 0 or -1 | close socket
+					// {
+					// 	// if Hostname is not there we have to return the according error code
+					// }
+					// if ((*itr)->findLocation() <= 0) // if it returns 0 or -1 | close socket
+					// {
+					// 	// if Location is not there we have to return the according error code
+					// }
+
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
 				{
