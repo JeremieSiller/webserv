@@ -126,6 +126,17 @@ void webserv::run()
 					for (int i = 0; i < (*itr)->getRequest().getBody().size(); i++)
 						std::cout << (*itr)->getRequest().getBody()[i];
 					std::cout << "----------------" << std::endl;
+
+					// // Do we want to interpret the request here?
+					// if ((*itr)->getRequest().findHostname() <= 0) // if it returns 0 or -1 | close socket
+					// {
+					// 	// if Hostname is not there we have to return the according error code
+					// }
+					// if ((*itr)->findLocation() <= 0) // if it returns 0 or -1 | close socket
+					// {
+					// 	// if Location is not there we have to return the according error code
+					// }
+
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
 				{

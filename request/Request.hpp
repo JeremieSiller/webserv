@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/09 15:21:27 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/15 18:50:04 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,15 @@ class Request {
 			RequestBodyStart,
 			RequestBody
 		} parseState;
+
+		typedef struct interpreter_info
+		{
+			std::string				host;
+			std::string				port;
+			std::string				abs_path;
+			std::string				query;
+			std::string				fragment;
+		}			t_interpreter_info;
 		
 
 	private:
@@ -76,6 +85,7 @@ class Request {
 		std::string							_serverName;
 		requestTypes						_type;
 		parseState							_ps;
+		t_interpreter_info					_interpreter_info;
 
 	private:
 	
@@ -126,4 +136,9 @@ class Request {
 
 		requestTypes						getType() { return this->_type; }
 		void								append(const char str[], int size);
+		// new function to interprete requests
+		int									findHostname();
+		int									findLocation();
+		int									prepareInterpreter();
+		std::string 						uriDecode(std::string value);
 };
