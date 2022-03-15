@@ -53,7 +53,7 @@ void Request::append(const char str[], int size)
 		this->_type = COMPLETE;	
 }
 
-int Request::_iscrlf(const char *str, int &idx)
+int Request::_iscrlf(const char *str, const int &idx)
 {
 	if (str[idx] == '\r')
 	{
@@ -105,43 +105,43 @@ int	Request::_parse(const char str[], int size)
 				this->_ps = RequestLineHTTPHT;
 				break;
 			case RequestLineHTTPHT:
-				if (str[i] == 'T')
+				if (str[i] != 'T')
 					return HTTP_VERSION_NOT_SUPPORTED;
 				this->_version += str[i];
 				this->_ps = RequestLineHTTPHTT;
 				break;
 			case RequestLineHTTPHTT:
-				if (str[i] == 'T')
+				if (str[i] != 'T')
 					return HTTP_VERSION_NOT_SUPPORTED;
 				this->_version += str[i];
 				this->_ps = RequestLineHTTPHTTP;
 				break;
 			case RequestLineHTTPHTTP:
-				if (str[i] == 'P')
+				if (str[i] != 'P')
 					return HTTP_VERSION_NOT_SUPPORTED;
 				this->_version += str[i];
 				this->_ps = RequestLineHTTPHTTP_;
 				break;
 			case RequestLineHTTPHTTP_:
-				if (str[i] == '/')
+				if (str[i] != '/')
 					return HTTP_VERSION_NOT_SUPPORTED;
 				this->_version += str[i];
 				this->_ps = RequestLineHTTPHTTP_x;
 				break;
 			case RequestLineHTTPHTTP_x:
-				if (str[i] == '1')
+				if (str[i] != '1')
 					return HTTP_VERSION_NOT_SUPPORTED;
 				this->_version += str[i];
 				this->_ps = RequestLineHTTPHTTP_x_;
 				break;
 			case RequestLineHTTPHTTP_x_:
-				if (str[i] == '.')
+				if (str[i] != '.')
 					return HTTP_VERSION_NOT_SUPPORTED;
 				this->_version += str[i];
 				this->_ps = RequestLineHTTPHTTP_x_x;
 				break;
 			case RequestLineHTTPHTTP_x_x:
-				if (str[i] == '1')
+				if (str[i] != '1')
 					return HTTP_VERSION_NOT_SUPPORTED;
 				this->_version += str[i];
 				this->_ps = RequestLineCRLF;
@@ -149,37 +149,43 @@ int	Request::_parse(const char str[], int size)
 			case RequestLineCRLF:
 				if (!this->_iscrlf(str, i))
 					return BAD_REQUEST;
-				if (str[++i] != '\n')
-					return BAD_REQUEST;
+				// if (str[++i] != '\n')
+				// 	return BAD_REQUEST;
+				i++;
 				this->_ps = RequestHeaderStart;
 				break;
 			case RequestHeaderStart:
-				if (this->_iscrlf(str, i))
+				/* if (this->_iscrlf(str, i))
 				{
-					if (str[++i] == '\n')
-						this->_ps = RequestBodyStart;
+					// if (str[++i] == '\n')
+					// 	this->_ps = RequestBodyStart;
 					return BAD_REQUEST;
 				}
-				else if (!this->_isalpha(str[i]) && !this->_isSpecial(str[i], true))
+				else  */
+				if (!this->_isalpha(str[i]) && !this->_isSpecial(str[i], true))
 					return BAD_REQUEST;
-				headerName = str[i];
+				// why assign char to string? +=?
+				headerName += str[i];
 				this->_ps = RequestHeaderName;
 			case RequestHeaderName:
 				if (str[i] == ':')
 				{
+					// need to check if this is coorect (Jerome point of contact)
 					if (this->_headers.count(headerName)) // header already in map invalid shit
 						return BAD_REQUEST;
-					this->_headers.insert(std::pair<std::string, std::string>(headerName, ""));
+					this->_headers[headerName] = "";
 					this->_ps = RequestHeaderSpace;
 				}
 				else if (!this->_isalpha(str[i]) && !this->_isSpecial(str[i], true))
 					return BAD_REQUEST;
-				else if (str[i] == '\r')
-					this->_ps = RequestBodyStart;
+				// Do we need this here?
+				// else if (str[i] == '\r')
+				// 	this->_ps = RequestBodyStart;
 				else
 					headerName += str[i];
 				break;
 			case RequestHeaderSpace:
+				// Could there be more spaces?
 				if (str[i] != ' ')
 					return BAD_REQUEST;
 				this->_ps = RequestHeaderOptions;
@@ -187,9 +193,10 @@ int	Request::_parse(const char str[], int size)
 			case RequestHeaderOptions:
 				if (this->_iscrlf(str, i))
 				{
-					if (str[++i] == '\n')
-						this->_ps = RequestHeaderStart;
-					return BAD_REQUEST;
+					// if (str[++i] == '\n')
+					this->_ps = RequestHeaderStart;
+					// return BAD_REQUEST;
+					break;
 				}
 				else if (!this->_isalpha(str[i]) && !this->_isSpecial(str[i], false))
 					return BAD_REQUEST;
