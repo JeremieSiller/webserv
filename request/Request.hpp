@@ -89,7 +89,7 @@ class Request {
 
 	private:
 	
-		int		_iscrlf(const char *str, int &idx);
+		int		_iscrlf(const char *str, const int &idx);
 		int		_isalpha(char c);
 		
 		/*
