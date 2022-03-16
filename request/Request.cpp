@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/15 19:07:44 by jhagedor         ###   ########.fr       */
+/*   Updated: 2022/03/16 13:47:23 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -277,4 +277,5 @@ int					Request::prepareInterpreter()
 		_interpreter_info.query = uriDecode(_path.substr(query_pos, fragment_pos - query_pos));
 		_interpreter_info.fragment = uriDecode(_path.substr(fragment_pos));
 	}
+	return 0;
 }

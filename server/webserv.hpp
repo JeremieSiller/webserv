@@ -15,11 +15,11 @@ class webserv
 {
 	private:
 
-		std::vector<Connection>	_connections;
-		std::vector<Client>		_clients;
+		std::vector<Connection *>	_connections;
+		std::vector<Client *>		_clients;
 
 		void	_initializeConnections(ConfigParser const& p);
-		void	_removeClient(std::vector<Client>::iterator &pos);
+		void	_removeClient(std::vector<Client *>::iterator &pos);
 
 		fd_set						_readfds;
 		fd_set						_writefds;

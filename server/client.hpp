@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/03/15 17:02:24 by jhagedor         ###   ########.fr       */
+/*   Updated: 2022/03/16 13:45:27 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,9 +38,9 @@ class Client
 
 		t_socket					_client_socket;
 		struct sockaddr_in			_addr;
-		Request						_request;
 		int							_status;
 		Connection					*_connection;
+		std::vector<char>			_request;
 
 	public:
 
@@ -54,7 +54,6 @@ class Client
 
 		int				readRequest();
 		int				sendResponse();
-		Request &	getRequest() { return this->_request; }
 
 		Client &operator=(const Client &in)
 		{
