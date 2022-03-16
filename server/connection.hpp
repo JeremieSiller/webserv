@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 12:00:46 by jsiller           #+#    #+#             */
-/*   Updated: 2022/03/16 13:03:03 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/16 13:45:12 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ class Connection
 		Server & getServer(std::string const &serverName);
 		t_socket	getSocket() { return this->_socket; }
 
-		Client	newAccept();
+		Client	*newAccept();
 
 		void	addServer(Server const& in);
 	

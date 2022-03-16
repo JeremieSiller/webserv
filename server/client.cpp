@@ -32,12 +32,12 @@ int	Client::readRequest()
 	if (ret <= 0)
 		return (ret);
 
-	this->_request.insert(this->_requests.end(), buffer.begin(), buffer.end());
+	this->_request.insert(this->_request.end(), buffer.begin(), buffer.end());
 	return 1;
 }
 
 int Client::sendResponse()
 {
 	
-	return 1;
+	return 0;
 }

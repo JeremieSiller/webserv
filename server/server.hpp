@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/14 20:18:46 by jsiller           #+#    #+#             */
-/*   Updated: 2022/03/16 13:00:10 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/16 13:46:44 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ class Server {
 			this->_max_body_size = in._max_body_size;
 			this->_root = in._root;
 			this->_autoindex = in._autoindex;
+			return *this;
 		}
 
 		std::string custommessage() { return this->_server_name[0]; }
