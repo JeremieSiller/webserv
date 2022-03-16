@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/03/16 13:45:27 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/16 16:03:40 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@
 # include "../request/Request.hpp"
 
 typedef int t_socket;
+
+#define MAX_RECV_SIZE 4096
 
 class Client
 {
@@ -40,7 +42,7 @@ class Client
 		struct sockaddr_in			_addr;
 		int							_status;
 		Connection					*_connection;
-		std::vector<char>			_request;
+		std::string					_request;
 
 	public:
 
