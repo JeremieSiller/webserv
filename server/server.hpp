@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/14 20:18:46 by jsiller           #+#    #+#             */
-/*   Updated: 2022/03/08 14:35:03 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/16 13:00:10 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,16 @@ class Server {
 			std::vector<location> const & locations, size_t const & max_body_size, std::string const & root, char const & autoindex)
 			: _server_name(server_name), _error_pages(error_pages), _locations(locations), _max_body_size(max_body_size), _root(root), _autoindex(autoindex)
 		{
+		}
+
+		Server&operator=(Server const &in)
+		{
+			this->_server_name = in._server_name;
+			this->_error_pages = in._error_pages;
+			this->_locations = in._locations;
+			this->_max_body_size = in._max_body_size;
+			this->_root = in._root;
+			this->_autoindex = in._autoindex;
 		}
 
 		std::string custommessage() { return this->_server_name[0]; }

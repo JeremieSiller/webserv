@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 12:05:03 by jsiller           #+#    #+#             */
-/*   Updated: 2022/03/08 14:34:31 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/16 13:04:15 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ Server & Connection::getServer(std::string const &serverName)
 	return (*this->_servers.begin());
 }
 
-Client *Connection::newAccept()
+Client Connection::newAccept()
 {
 	t_socket			client_socket;
 	struct sockaddr_in	client_addr;
@@ -56,7 +56,7 @@ Client *Connection::newAccept()
 
 	fcntl(client_socket, F_SETFL, O_NONBLOCK);
 
-	return new Client(client_socket, (struct sockaddr_in)client_addr, this);
+	return Client(client_socket, (struct sockaddr_in)client_addr, this);
 }
 
 void	Connection::addServer(Server const& in)
@@ -66,4 +66,12 @@ void	Connection::addServer(Server const& in)
 
 Connection::~Connection() {
 	close(this->_socket);
+}
+
+Connection &Connection::operator=(Connection const &in)
+{
+	this->_servers = in._servers;
+	this->_port = in._port;
+	this->_address = in._address;
+	this->_socket = in._socket;
 }
