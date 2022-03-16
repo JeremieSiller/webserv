@@ -43,8 +43,6 @@ int	Client::readRequest()
 	if (ret <= 0)
 		return (ret);
 	this->_request +=  std::string(buffer, ret);
-	for (int i = 0; i < this->_request.size(); ++i)
-		std::cout << this->_request[i];
 	size_t body = this->_request.find("\r\n\r\n");
 	if (body != std::string::npos)
 	{
