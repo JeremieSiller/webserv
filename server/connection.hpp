@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 12:00:46 by jsiller           #+#    #+#             */
-/*   Updated: 2022/03/08 14:13:59 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/16 13:03:03 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,16 +42,18 @@ class Connection
 	private:
 	
 		std::vector<Server>		_servers;
-		const unsigned short	_port;
-		const std::string		_address;
+		unsigned short			_port;
+		std::string				_address;
 		t_socket				_socket;
 
 	public:
 	
+		Connection&operator=(Connection const &in);
+	
 		Server & getServer(std::string const &serverName);
 		t_socket	getSocket() { return this->_socket; }
 
-		Client	*newAccept();
+		Client	newAccept();
 
 		void	addServer(Server const& in);
 	
