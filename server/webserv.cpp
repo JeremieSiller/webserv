@@ -59,8 +59,10 @@ void	webserv::_initSets()
 	// add clients to read fds and write fds
 	for (std::vector<Client *>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 	{
-		FD_SET((*itr)->getSocket(), &this->_readfds);
-		FD_SET((*itr)->getSocket(), &this->_writefds);
+		if ((*itr)->getClientStatus() == Client::READING)
+			FD_SET((*itr)->getSocket(), &this->_readfds);
+		else if ((*itr)->getClientStatus() == Client::WRITING)
+			FD_SET((*itr)->getSocket(), &this->_writefds);
 		if ((*itr)->getSocket() > this->_maxfds)
 			this->_maxfds = (*itr)->getSocket();
 	}
@@ -101,8 +103,10 @@ void webserv::run()
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // we can read from client
 				{
+					std::cout << "here" << std::endl;
 					if ((*itr)->readRequest() <= 0) // if it returns 0 or -1 | close socket
 					{
+						std::cout << "read request" << std::endl;
 						this->_removeClient(itr);
 						continue;
 					}
@@ -111,9 +115,8 @@ void webserv::run()
 				{
 					// parse then send response
 					// dont forget to clear vector in client !!
-					
-					std::cout << "here" << std::endl;
 					// either client status is DIE or WRITE which is the same
+					(*itr)->setClientStatus(Client::READING);
 					if (!(*itr)->sendResponse())
 					{
 						std::cout << "response failed" << std::endl;
