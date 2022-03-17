@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/17 17:32:13 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/17 20:53:46 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,7 @@
 // 		std::string 						uriDecode(std::string value);
 // };
 
+# define CRLF "\r\n"
 
 class Request
 {
@@ -154,6 +155,7 @@ class Request
 		{
 			HEADER,
 			BODY,
+			COMPLETE,
 			INVALID
 		} headerstatus;
 
@@ -177,7 +179,7 @@ class Request
 
 		std::string _host;
 		size_t		_contentLength;
-		std::vector<std::string> _transferEncoding;
+		std::list<std::string> _transferEncoding;
 		
 		// false -> CLOSE;
 		// true -> keep-alive;
@@ -190,6 +192,7 @@ class Request
 
 		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
 		std::map<std::string, std::string> _contenttype;
+
 		
 		std::string _location;
 		
@@ -206,11 +209,27 @@ class Request
 	
 		Request();
 
-		void setHeader(std::string const &header);
-		void addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end);
+		void	setHeader(std::string const &header);
+		void	addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end);
 		
-		void clear();
+		void	clear();
 		
-		headerstatus getStatus() { return this->_headerStatus; }
+		const headerstatus							&getStatus() const { return this->_headerStatus; }
+		const std::list<std::string>				&getAccept() const { return _accept; }
+		const std::string							&getServer() const { return _server; }
+		const std::map<std::string, std::string>	&getContentType() const {return _contenttype; }
+		const std::string							&getLocation() const { return _location; }
+		const std::vector<char>						&getBody() const { return _body; }
+		const std::map<std::string, std::string>	&getParsedHeader() const { return _parsedHeader; }
+		const std::string							&getHeader() const { return _header; }
+		const std::string							&getVersion() const { return _version; }
+		const std::string							&getPath() const { return _path; }
+		const std::string							&getMethod() const { return _method; }
+		const int									&getChunkSize() const { return _chunksize; }
+		const size_t								&getContentLength() const { return _contentLength; }
+		const std::string 							&getHost() const { return _host; }
+		const std::list<std::string>				&getTransferEncoding() const { return _transferEncoding; }
+		const bool									&getConnection() const { return _connection; }
+		const bool									&getExpect() const { return _expect; }
 
 };
