@@ -36,14 +36,22 @@ class Client
 			DIE
 		}clientstatus;
 
+		typedef enum t_headerstaus
+		{
+			HEADER,
+			BODY,
+			INVALID
+		} headerstatus;
 		
 	private:
 
 		t_socket					_client_socket;
 		struct sockaddr_in			_addr;
-		int							_status;
+		clientstatus				_status;
+		headerstatus				_header_status;
 		Connection					*_connection;
 		std::string					_request;
+		std::vector<char>			_body;
 
 	public:
 
@@ -53,18 +61,18 @@ class Client
 		t_socket		getSocket() { return this->_client_socket; }
 
 		clientstatus	getClientStatus() { return static_cast<clientstatus>(this->_status); }
-		void			setClientStatus(clientstatus cs) { this->_status = static_cast<int>(cs); }
+		void			setClientStatus(clientstatus cs) { this->_status = (cs); }
 
 		int				readRequest();
 		int				sendResponse();
 
-		Client &operator=(const Client &in)
-		{
-			this->_addr = in._addr;
-			this->_client_socket = in._client_socket;
-			this->_request = in._request;
-			this->_status = in._status;
-			return *this;
-		}
+		// Client &operator=(const Client &in)
+		// {
+		// 	this->_addr = in._addr;
+		// 	this->_client_socket = in._client_socket;
+		// 	// this->_request = in._request;
+		// 	this->_status = in._status;
+		// 	return *this;
+		// }
 
 };

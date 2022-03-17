@@ -59,10 +59,14 @@ void	webserv::_initSets()
 	// add clients to read fds and write fds
 	for (std::vector<Client *>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 	{
-		if ((*itr)->getClientStatus() == Client::READING)
+		if ((*itr)->getClientStatus() == Client::READING) {
+			LOG_BLUE("status: READING");
 			FD_SET((*itr)->getSocket(), &this->_readfds);
-		else if ((*itr)->getClientStatus() == Client::WRITING)
+		}
+		else if ((*itr)->getClientStatus() == Client::WRITING) {
 			FD_SET((*itr)->getSocket(), &this->_writefds);
+			LOG_BLUE("status: WRITING");
+		}
 		if ((*itr)->getSocket() > this->_maxfds)
 			this->_maxfds = (*itr)->getSocket();
 	}
@@ -79,9 +83,9 @@ void webserv::run()
 		struct timeval timeout;
 
 		timeout.tv_sec = 10;
-		timeout.tv_usec = 0;
+		timeout.tv_usec = 1000;
 		select_ret = select(this->_maxfds + 1, &this->_readfds, &this->_writefds, NULL, &timeout);
-		LOG_GREEN("select returned: " << select_ret);
+		// LOG_GREEN("select returned: " << select_ret);
 		if (select_ret == -1)
 		{
 			perror("select");
@@ -128,16 +132,18 @@ void webserv::run()
 						this->_removeClient(itr);
 					}
 					LOG_GREEN("Send repsonse to client");
+					
 				}
 			}
 		}
 		else // TIMOUT
 		{
-			LOG_BLUE("Timeout -> removing all clients");
 			// Clean all Clients
-			for (std::vector<Client *>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
+			for (std::vector<Client *>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++) {
+				LOG_BLUE("Timeout -> removing client");
 				this->_removeClient(itr);
+			}
 		}
-		LOG_YELLOW("------");
+		// LOG_YELLOW("------");
 	}
 }

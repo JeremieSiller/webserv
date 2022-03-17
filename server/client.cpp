@@ -13,8 +13,23 @@
 #include "client.hpp"
 #include <unistd.h>
 #include <string.h>
+#include <algorithm>
+#include <sstream>
 
-Client::Client(t_socket client_socket, struct sockaddr_in addr, Connection *connection) : _client_socket(client_socket), _addr(addr),  _status(), _connection(connection)
+char EO_HEADER[] = {'\r', '\n', '\r', '\n'};
+
+/**
+ * @brief finds a pattern of a vector in a vector and returns it position
+ * use like this: find_pattern(v1, std::vector<char> {'\r'}{'\n'});
+ * @param data the vector to search in
+ * @param pattern the pattern to find
+ * @return std::vector<char>::const_iterator the position of pattern in data (std::npos if not found);
+ */
+std::vector<char>::const_iterator	find_pattern(const std::vector<char> &data, const std::vector<char> &pattern) {
+	return std::search(data.begin(), data.end(), pattern.begin(), pattern.end());
+}
+
+Client::Client(t_socket client_socket, struct sockaddr_in addr, Connection *connection) : _client_socket(client_socket), _addr(addr),  _status(READING), _header_status(HEADER), _connection(connection)
 {
 }
 
@@ -35,50 +50,54 @@ int strHexDec(std::string str)
 
 int	Client::readRequest()
 {
-	char	buffer[MAX_RECV_SIZE] = {0};
-	int		ret;
-	size_t		len = 0;
+	std::vector<char>	buf(MAX_RECV_SIZE);
+	// char	buffer[MAX_RECV_SIZE] = {0};
+	int					ret;
+	size_t				len = 0;
 
-	ret = recv(this->_client_socket, buffer, MAX_RECV_SIZE, 0);
+	ret = recv(this->_client_socket, buf.begin().base(), MAX_RECV_SIZE, 0);
 	if (ret <= 0)
 		return (ret);
-	this->_request +=  std::string(buffer, ret);
-	size_t body = this->_request.find("\r\n\r\n");
-	if (body != std::string::npos)
-	{
-		if (this->_request.find("Transfer-Encoding: chunked") != std::string::npos)
-		{
-			int i = this->_request.find("\r\n", body + 4);
-			len = strHexDec(this->_request.substr(body + 4, i - (body + 4)));
+	std::vector<char>::const_iterator it = buf.begin();
+	while (it != buf.end()) {
+		std::cout << (*it);
+		it++;
+	}
+	std::cout << std::endl;
+	if (_header_status == HEADER) {
+		LOG_YELLOW("Header_status = Header");
+		std::vector<char>::const_iterator pos = find_pattern(buf, std::vector<char> (EO_HEADER, EO_HEADER + 4));
+		if (pos == buf.end()) {
+			LOG_RED("Not a valid HTTP header (in the first " << MAX_RECV_SIZE << " bytes");
+			_status = DIE; //is the same as WRITING! but writes 400 -> BAD request.
+			return 1;
 		}
-		else
-		{
-			// Content-Length is omited in case of chunked encoding
-			// needs to exist i think xd
-			if (this->_request.find("Content-Length: ") != std::string::npos)
-				len = ::atoi(this->_request.substr(this->_request.find("Content-Length: ") + 16, 11).c_str());
-			else {
-				_status = WRITING;
-				return 1;
-			}
+		else {
+			this->_request =  std::string(buf.begin(), buf.end());
+			this->_body.insert(_body.begin(), pos, static_cast<std::vector<char>::const_iterator>(buf.end()));
+			_header_status = BODY;
+			//parser header (and body?) -> only thing checked till here is that we have '\r\n\r\n'
+			//for testing purpose we are setting status to WRITE but this can differ depending on the header.
+			_status = WRITING;
 		}
 	}
 	else {
-		return -1; //status->die
+		LOG_YELLOW("Header_status = Body");
+		_body.insert(_body.begin(), buf.begin(), buf.end());
 	}
-	LOG_YELLOW("{" << len << ", " << this->_request.size() - body - 4 << "}");
-	if (this->_request.size() >= len + body + 4)
-		this->_status = WRITING;
-	else
-		this->_status = READING;
 	return 1;
 }
 
 int Client::sendResponse()
 {
+	_status = READING;
 	//testing purpose:
-	std::string response = "HTTP/1.1 200 OK\r\nHello World\r\n\r\n";
-	send(this->_client_socket, response.c_str(), response.length(), 0);
+	std::string response = "HTTP/1.1 200 Ok\r\nContent-length: 0\r\n\r\n";
+	if (send(this->_client_socket, response.c_str(), response.length(), 0) == -1)
+		return 0;
+	this->_body.clear();
 	this->_request.clear();
-	return 0;
+	this->_header_status = HEADER;
+	LOG_RED("Set header status to HEADER");
+	return 1;
 }
