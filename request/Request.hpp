@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/17 18:10:55 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/17 18:15:59 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,7 +217,7 @@ class Request
 		const std::list<std::string>				&getAccept() const { return _accept; }
 		const std::string							&getServer() const { return _server; }
 		const std::map<std::string, std::string>	&getContentType() const {return _contenttype; }
-		const  std::string							&getLocation() const { return _location; }
+		const std::string							&getLocation() const { return _location; }
 		const std::vector<char>						&getBody() const { return _body; }
 		const std::map<std::string, std::string>	&getParsedHeader() const { return _parsedHeader; }
 		const std::string							&getHeader() const { return _header; }
