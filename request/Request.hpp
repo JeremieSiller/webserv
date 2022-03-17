@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/17 17:32:13 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/17 18:10:55 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,7 @@
 // 		std::string 						uriDecode(std::string value);
 // };
 
+# define CRLF "\r\n"
 
 class Request
 {
@@ -207,10 +208,10 @@ class Request
 	
 		Request();
 
-		void setHeader(std::string const &header);
-		void addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end);
+		void	setHeader(std::string const &header);
+		void	addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end);
 		
-		void clear();
+		void	clear();
 		
 		const headerstatus							&getStatus() const { return this->_headerStatus; }
 		const std::list<std::string>				&getAccept() const { return _accept; }
