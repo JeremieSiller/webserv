@@ -190,6 +190,7 @@ class Request
 
 		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
 		std::map<std::string, std::string> _contenttype;
+
 		
 		std::string _location;
 		
@@ -211,6 +212,22 @@ class Request
 		
 		void clear();
 		
-		headerstatus getStatus() { return this->_headerStatus; }
+		const headerstatus							&getStatus() const { return this->_headerStatus; }
+		const std::list<std::string>				&getAccept() const { return _accept; }
+		const std::string							&getServer() const { return _server; }
+		const std::map<std::string, std::string>	&getContentType() const {return _contenttype; }
+		const  std::string							&getLocation() const { return _location; }
+		const std::vector<char>						&getBody() const { return _body; }
+		const std::map<std::string, std::string>	&getParsedHeader() const { return _parsedHeader; }
+		const std::string							&getHeader() const { return _header; }
+		const std::string							&getVersion() const { return _version; }
+		const std::string							&getPath() const { return _path; }
+		const std::string							&getMethod() const { return _method; }
+		const int									&getChunkSize() const { return _chunksize; }
+		const size_t								&getContentLength() const { return _contentLength; }
+		const std::string 							&getHost() const { return _host; }
+		const std::vector<std::string>				&getTransferEncoding() const { return _transferEncoding; }
+		const bool									&getConnection() const { return _connection; }
+		const bool									&getExpect() const { return _expect; }
 
 };
