@@ -43,6 +43,8 @@ int	Client::readRequest()
 	if (ret <= 0)
 		return (ret);
 	this->_request +=  std::string(buffer, ret);
+	// LOG_YELLOW(buffer);
+	LOG_YELLOW(_request);
 	size_t body = this->_request.find("\r\n\r\n");
 	if (body != std::string::npos)
 	{
@@ -77,7 +79,7 @@ int	Client::readRequest()
 int Client::sendResponse()
 {
 	//testing purpose:
-	std::string response = "HTTP/1.1 200 OK\r\nHello World\r\n\r\n";
+	std::string response = "HTTP/1.1 200 OK\r\n\r\nHello World";
 	send(this->_client_socket, response.c_str(), response.length(), 0);
 	this->_request.clear();
 	return 0;

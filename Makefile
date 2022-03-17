@@ -17,6 +17,7 @@ INC =	interpreter/Interpreter.hpp	\
 		server/location.hpp			\
 		server/server.hpp			\
 		server/webserv.hpp			\
+		main.hpp					\
 
 SRC =	main.cpp					\
 		parsing/AToken.cpp			\

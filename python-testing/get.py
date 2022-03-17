@@ -1,8 +1,17 @@
 import requests as r
 
 url = "http://localhost:8070/"
-while (True):
-	response = r.get(url=url)
-	print("status code:", response.status_code)
-	print("text:", response.text)
+header = {
+	'hallo':'test',
+	'xyz':'test'
+}
+#Query string
+data = {
+	'code':'123',
+	'valuee':'ddd'
+}
+# while (True):
+response = r.post(url=url, data=data)
+print("status code:", response.status_code)
+print("text:", response.text)
 # print("json:", response.json())
