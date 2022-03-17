@@ -1,17 +1,9 @@
-import requests as r
+import logging
+import requests
 
-url = "http://localhost:8070/"
-header = {
-	'hallo':'test',
-	'xyz':'test'
-}
-#Query string
-data = {
-	'code':'123',
-	'valuee':'ddd'
-}
-# while (True):
-response = r.post(url=url, data=data)
-print("status code:", response.status_code)
-print("text:", response.text)
-# print("json:", response.json())
+logging.basicConfig(level=logging.DEBUG)
+s = requests.Session()
+s.get('http://localhost:8070')
+s.get('http://localhost:8070')
+r = s.get("http://localhost:8070")
+print(r.text)
