@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/17 17:27:32 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/17 17:32:13 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,10 +190,11 @@ class Request
 		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
 		std::map<std::string, std::string> _contenttype;
 		
+		std::string _location;
 		
-		
+		std::string _server;
 
-
+		std::list<std::string> _accept;
 
 
 	private:
