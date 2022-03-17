@@ -16,18 +16,23 @@
 # include <map>
 # include <vector>
 # include <stdlib.h>
-
+# include "response/response.hpp"
+# include "server/server.hpp"
+# include "request/request.hpp"
+# include "location/location.hpp"
 
 class Interpreter {
 	
 	private:
-		
+		const Request	&_request;
+		response		_response;
+		Server			_server;
 
 	public:
-		Interpreter();
+		Interpreter(const Request &Request);
 		~Interpreter() {};
 
-		void	findHostname();
+		void	findHostname(const std::vector<Server> &servers);
 		void	findLocation();
 
 };

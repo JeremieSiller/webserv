@@ -60,7 +60,7 @@ class Server {
 		// depending on this server will formulate response
 		int	doRequest(Request const &req);
 		
-		bool operator== (std::string const &in )
+		bool operator==(std::string const &in ) const
 		{
 			for (unsigned int i = 0; i < _server_name.size(); i++)
 				if (in == _server_name[i])
