@@ -73,8 +73,8 @@ int	Client::readRequest()
 			return 1;
 		}
 		else {
-			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(buf.begin()), pos));
-			this->_req.addBody(pos, static_cast<std::vector<char>::const_iterator>(buf.end()));
+			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(buf.begin()), pos + 4));
+			this->_req.addBody(pos + 4, static_cast<std::vector<char>::const_iterator>(buf.end()));
 			//parse here
 			//parser header (and body?) -> only thing checked till here is that we have '\r\n\r\n'
 			//for testing purpose we are setting status to WRITE but this can differ depending on the header.

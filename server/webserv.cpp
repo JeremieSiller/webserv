@@ -117,6 +117,12 @@ void webserv::run()
 						this->_removeClient(itr);
 						continue;
 					}
+					LOG_YELLOW((*itr)->getRequest().getMethod());
+					LOG_YELLOW((*itr)->getRequest().getPath());
+					LOG_YELLOW((*itr)->getRequest().getVersion());
+					LOG_YELLOW((*itr)->getRequest().getHost());
+					LOG_YELLOW((*itr)->getRequest().getServer());
+
 					LOG_GREEN("Read from client");
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
