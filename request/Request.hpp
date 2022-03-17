@@ -19,6 +19,7 @@
 # include <stdlib.h>
 
 # include "../response/errorcodes.hpp"
+# include "../main.hpp"
 
 class Request {
 	

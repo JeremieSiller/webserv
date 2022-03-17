@@ -18,6 +18,7 @@
 # include <unistd.h>
 # include "connection.hpp"
 # include "../request/Request.hpp"
+# include "../main.hpp"
 
 typedef int t_socket;
 

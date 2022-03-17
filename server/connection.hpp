@@ -19,6 +19,7 @@
 # include <map>
 # include <exception>
 # include <string>
+# include "../main.hpp"
 
 # define STDPORT 80
 # define STDADDRESS "0.0.0.0"
