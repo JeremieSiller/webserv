@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/17 18:14:06 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/17 18:27:44 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -293,8 +293,8 @@ void Request::setHeader(std::string const &header)
 
 int Request::_parseHeader()
 {
-	int pos = 0;
-	int begin = 0;
+	size_t pos = 0;
+	size_t begin = 0;
 
 	// Get First line
 	// METHOD PATH HTTPVER \r\n
@@ -304,14 +304,14 @@ int Request::_parseHeader()
 	this->_method = std::string(this->_header.substr(0, pos));
 
 	begin = pos;
-	pos = this->_header.find(begin + 1, ' ');
+	pos = this->_header.find(' ', begin + 1);
 	if (pos == std::string::npos)
-	this->_path = std::string(this->_header.substr(begin + 1, pos))
+	this->_path = std::string(this->_header.substr(begin + 1, pos));
 
 	begin = pos;
-	pos = this->_header.find(begin + 1, CRLF);
+	pos = this->_header.find(CRLF, begin + 1);
 	if (pos == std::string::npos)
-	this->_version = std::string(this->_header.substr(begin + 1, pos))
+	this->_version = std::string(this->_header.substr(begin + 1, pos));
 
 	begin = pos;
 	// begin == \r
@@ -322,25 +322,25 @@ int Request::_parseHeader()
 		// HEADERNAME: OPTIONS, OPTIONS
 		// store everything in map then in individual things
 
-		pos = this->_header.find(begin + 2, ':');
+		pos = this->_header.find(':', begin + 2);
 		// if it cant find it we must be at the end of headers section
 		if (pos == std::string::npos)
 		{
-			pos = this->_header.find(begin + 2, CRLF);
+			pos = this->_header.find(CRLF, begin + 2);
 			if (pos == std::string::npos)
 				return 0;
 			break;
 		}
 		headerName = std::string(this->_header.substr(begin + 2, pos));
 		if (this->_parsedHeader.count(headerName))
-			this->_parsedHeader[headerName] += ','
+			this->_parsedHeader[headerName] += ',';
 		else
 			this->_parsedHeader.insert(std::pair<std::string, std::string>(headerName, ""));
 		
 		// begin == ':'
 		// needs to find crlf after the :
 		begin = pos;
-		pos = this->_header.find(begin + 1, CRLF);
+		pos = this->_header.find(CRLF, begin + 1);
 		if (pos == std::string::npos)
 			return 0;
 		this->_parsedHeader[headerName] += std::string(this->_header.substr(begin + 1, pos));
@@ -351,7 +351,7 @@ int Request::_parseHeader()
 	{
 		// port is optional
 		// HOST: <NAME>:<PORT>
-		pos = this->_parsedHeader.find(':');
+		pos = this->_parsedHeader["Host"].find(':');
 		if (pos == std::string::npos)
 			this->_host = this->_parsedHeader["Host"];
 		else
@@ -377,7 +377,7 @@ int Request::_parseHeader()
 	if (this->_parsedHeader.count("Expect") && this->_parsedHeader["Expect"] == "100-continue")
 		this->_expect = true;
 
-	if (this->_parseHeader.count("Content-Type"))
+	if (this->_parsedHeader.count("Content-Type"))
 	{
 
 	}
