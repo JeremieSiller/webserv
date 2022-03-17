@@ -1,6 +1,7 @@
 #include "server/webserv.hpp"
 #include "parsing/Lexer.hpp"
 #include "parsing/ConfigParser.hpp"
+#include "main.hpp"
 
 int	main(int argc, char **argv) {
 	

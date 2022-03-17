@@ -22,6 +22,7 @@
 # include <unistd.h>
 # include "../parsing/ConfigParser.hpp"
 # include "../request/Request.hpp"
+# include "../main.hpp"
 
 class Server {
 	private:

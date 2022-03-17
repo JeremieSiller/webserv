@@ -10,6 +10,7 @@
 # include "connection.hpp"
 # include "client.hpp"
 # include "../parsing/ConfigParser.hpp"
+# include "../main.hpp"
 
 class webserv
 {

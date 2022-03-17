@@ -14,6 +14,7 @@
 #include "ConfigToken.hpp"
 #include "utility.hpp"
 
+
 #define LOG(x) std::cout << x
 #define LOGN(x) std::cout << x << std::endl; 
 

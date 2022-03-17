@@ -1,12 +1,13 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
-#pragma once
-#include <string>
-#include <vector>
-#include <map>
-#include <unistd.h>
-#define VERSION "HTTP/1.1"
+# pragma once
+# include <string>
+# include <vector>
+# include <map>
+# include <unistd.h>
+# define VERSION "HTTP/1.1"
+# include "../main.hpp"
 
 class response
 {
