@@ -81,6 +81,7 @@ void webserv::run()
 		timeout.tv_sec = 10;
 		timeout.tv_usec = 0;
 		select_ret = select(this->_maxfds + 1, &this->_readfds, &this->_writefds, NULL, &timeout);
+		LOG_GREEN("select returned: " << select_ret);
 		if (select_ret == -1)
 		{
 			perror("select");
@@ -94,8 +95,10 @@ void webserv::run()
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // new client on this connection
 				{
+					LOG_BLUE("new client found");
 					this->_clients.push_back((*itr)->newAccept());
 					this->_clients.back()->setClientStatus(Client::READING);
+					LOG_GREEN("client accepted");
 				}
 			}
 
@@ -103,34 +106,38 @@ void webserv::run()
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // we can read from client
 				{
-					std::cout << "here" << std::endl;
+					LOG_BLUE("Reading socket");
 					if ((*itr)->readRequest() <= 0) // if it returns 0 or -1 | close socket
 					{
-						std::cout << "read request" << std::endl;
+						LOG_RED("Recv rerturned <=0, removing client");
 						this->_removeClient(itr);
 						continue;
 					}
+					LOG_GREEN("Read from client");
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
 				{
 					// parse then send response
 					// dont forget to clear vector in client !!
 					// either client status is DIE or WRITE which is the same
+					LOG_BLUE("Writing to socket");
 					(*itr)->setClientStatus(Client::READING);
 					if (!(*itr)->sendResponse())
 					{
-						std::cout << "response failed" << std::endl;
+						LOG_RED("Could not write to socket, removing client");
 						this->_removeClient(itr);
 					}
+					LOG_GREEN("Send repsonse to client");
 				}
 			}
 		}
 		else // TIMOUT
 		{
-			std::cout << "wiping" << std::endl;
+			LOG_BLUE("Timeout -> removing all clients");
 			// Clean all Clients
 			for (std::vector<Client *>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 				this->_removeClient(itr);
 		}
+		LOG_YELLOW("------");
 	}
 }

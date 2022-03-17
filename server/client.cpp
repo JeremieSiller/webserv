@@ -43,8 +43,6 @@ int	Client::readRequest()
 	if (ret <= 0)
 		return (ret);
 	this->_request +=  std::string(buffer, ret);
-	for (int i = 0; i < this->_request.size(); ++i)
-		std::cout << this->_request[i];
 	size_t body = this->_request.find("\r\n\r\n");
 	if (body != std::string::npos)
 	{
@@ -59,13 +57,16 @@ int	Client::readRequest()
 			// needs to exist i think xd
 			if (this->_request.find("Content-Length: ") != std::string::npos)
 				len = ::atoi(this->_request.substr(this->_request.find("Content-Length: ") + 16, 11).c_str());
-			else
-				return -1;
+			else {
+				_status = WRITING;
+				return 1;
+			}
 		}
 	}
-	else
-		return -1;
-	std::cout << "{" << len << ", " << this->_request.size() - body - 4 << "}";
+	else {
+		return -1; //status->die
+	}
+	LOG_YELLOW("{" << len << ", " << this->_request.size() - body - 4 << "}");
 	if (this->_request.size() >= len + body + 4)
 		this->_status = WRITING;
 	else
@@ -75,6 +76,9 @@ int	Client::readRequest()
 
 int Client::sendResponse()
 {
+	//testing purpose:
+	std::string response = "HTTP/1.1 200 OK\r\nHello World\r\n\r\n";
+	send(this->_client_socket, response.c_str(), response.length(), 0);
 	this->_request.clear();
 	return 0;
 }
