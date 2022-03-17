@@ -29,7 +29,7 @@ std::vector<char>::const_iterator	find_pattern(const std::vector<char> &data, co
 	return std::search(data.begin(), data.end(), pattern.begin(), pattern.end());
 }
 
-Client::Client(t_socket client_socket, struct sockaddr_in addr, Connection *connection) : _client_socket(client_socket), _addr(addr),  _status(READING), _header_status(HEADER), _connection(connection)
+Client::Client(t_socket client_socket, struct sockaddr_in addr, Connection *connection) : _client_socket(client_socket), _addr(addr),  _status(READING), _connection(connection)
 {
 }
 
@@ -64,7 +64,7 @@ int	Client::readRequest()
 		it++;
 	}
 	std::cout << std::endl;
-	if (_header_status == HEADER) {
+	if (this->_req.getStatus() == Request::HEADER) {
 		LOG_YELLOW("Header_status = Header");
 		std::vector<char>::const_iterator pos = find_pattern(buf, std::vector<char> (EO_HEADER, EO_HEADER + 4));
 		if (pos == buf.end()) {
@@ -73,9 +73,9 @@ int	Client::readRequest()
 			return 1;
 		}
 		else {
-			this->_request =  std::string(buf.begin(), buf.end());
-			this->_body.insert(_body.begin(), pos, static_cast<std::vector<char>::const_iterator>(buf.end()));
-			_header_status = BODY;
+			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(buf.begin()), pos));
+			this->_req.addBody(_body.begin(), pos, static_cast<std::vector<char>::const_iterator>(buf.end()));
+			//parse here
 			//parser header (and body?) -> only thing checked till here is that we have '\r\n\r\n'
 			//for testing purpose we are setting status to WRITE but this can differ depending on the header.
 			_status = WRITING;
@@ -83,21 +83,19 @@ int	Client::readRequest()
 	}
 	else {
 		LOG_YELLOW("Header_status = Body");
-		_body.insert(_body.begin(), buf.begin(), buf.end());
+		this->_req.addBody(_body.begin(), buf.begin(), static_cast<std::vector<char>::const_iterator>(buf.end()));
 	}
 	return 1;
 }
 
 int Client::sendResponse()
 {
-	_status = READING;
+	this->_status = READING;
 	//testing purpose:
 	std::string response = "HTTP/1.1 200 Ok\r\nContent-length: 0\r\n\r\n";
 	if (send(this->_client_socket, response.c_str(), response.length(), 0) == -1)
 		return 0;
-	this->_body.clear();
-	this->_request.clear();
-	this->_header_status = HEADER;
 	LOG_RED("Set header status to HEADER");
+	this->_req.clear();
 	return 1;
 }

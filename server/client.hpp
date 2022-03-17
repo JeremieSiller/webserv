@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/03/16 16:03:40 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/17 17:22:08 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,22 +36,16 @@ class Client
 			DIE
 		}clientstatus;
 
-		typedef enum t_headerstaus
-		{
-			HEADER,
-			BODY,
-			INVALID
-		} headerstatus;
+
 		
 	private:
 
 		t_socket					_client_socket;
 		struct sockaddr_in			_addr;
 		clientstatus				_status;
-		headerstatus				_header_status;
 		Connection					*_connection;
-		std::string					_request;
 		std::vector<char>			_body;
+		Request 					_req;
 
 	public:
 
