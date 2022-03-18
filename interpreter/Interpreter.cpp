@@ -27,7 +27,7 @@ std::vector<std::string>	split_string(const std::string &s, const char &c) {
 	return seglist;
 }
 
-size_t		count_continues_matches(const std::vector<std::string> &path, const std::vector<std::string> &uri) {
+int		count_continues_matches(const std::vector<std::string> &path, const std::vector<std::string> &uri) {
 	std::vector<std::string>::const_iterator	pit = path.begin();
 	std::vector<std::string>::const_iterator	uit = uri.begin();
 	size_t	count = 0;
@@ -62,15 +62,18 @@ void	Interpreter::_findHostname() {
 
 void	Interpreter::_findLocation(std::vector<location> const &l) {
 	std::vector<location>::const_iterator it = l.begin();
-	size_t		max = -1;
-	location	tmp;
+	int		max = -1;
 	while (it != l.end()) {
 		const std::vector<std::string>	sp = split_string(it->_path, '/');
-		const std::vector<std::string>	&up = split_string("www/lol", '/');		
-		size_t c = count_continues_matches(sp, up);
+		const std::vector<std::string>	&up = split_string(_request.getInterpreterInfo().abs_path, '/');		
+		int c = count_continues_matches(sp, up);
+		LOG_RED("DBEUG: " << c);
 		if (c > max) {
-			tmp = *it;
+			LOG_BLUE("DEBUG2");
+			_location = *it;
+			max = c;
 		}
 		it++;
 	}
+	LOG_GREEN(_location._path << " is the most exact match for: " << _request.getInterpreterInfo().abs_path);
 }
