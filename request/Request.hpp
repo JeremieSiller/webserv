@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/17 20:53:46 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/18 15:08:10 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,6 +147,8 @@
 
 # define CRLF "\r\n"
 
+
+		
 class Request
 {
 	public:
@@ -159,18 +161,25 @@ class Request
 			INVALID
 		} headerstatus;
 
+		typedef struct interpreter_info
+		{
+			std::string				abs_path;
+			std::string				query;
+			std::string				fragment;
+		}			t_interpreter_info;
+
 
 	private:
-
 	
 		std::string _header;
 		std::vector<char> _body;
 
 		std::map<std::string, std::string> _parsedHeader;
 		
-		std::string _version;
-		std::string _path;
-		std::string _method;
+		std::string			_version;
+		std::string			_path;
+		std::string			_method;
+		t_interpreter_info	_interpreter_info;
 		
 		headerstatus	_headerStatus;
 		
@@ -232,4 +241,7 @@ class Request
 		const bool									&getConnection() const { return _connection; }
 		const bool									&getExpect() const { return _expect; }
 
+		int											prepareInterpreter();
+		std::string 								uriDecode(std::string value);
+		const t_interpreter_info					&getInterpreterInfo() const { return _interpreter_info; }
 };

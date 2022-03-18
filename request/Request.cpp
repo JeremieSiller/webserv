@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/17 21:49:00 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/18 13:55:43 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,78 +208,6 @@
 // 	return _integrityCheck();
 // }
 
-// std::string	Request::uriDecode(std::string value)
-// {
-// 	std::string result;
-// 	result.reserve(value.size());
-
-// 	for (std::size_t i = 0; i < value.size(); ++i)
-// 	{
-// 		char ch = value[i];
-		
-// 		if (ch == '%' && (i + 2) < value.size())
-// 		{
-// 			std::string hex = value.substr(i + 1, 2);
-// 			// copy and paste, need to figure out how this line works
-// 			char dec = static_cast<char>(std::strtol(hex.c_str(), nullptr, 16));
-// 			result.push_back(dec);
-// 			i += 2;
-// 		}
-// 		else if (ch == '+')
-// 			result.push_back(' ');
-// 		else
-// 			result.push_back(ch);
-// 	}
-// 	return result;
-// }
-
-// int					Request::prepareInterpreter()
-// {
-// 	// check what kind of Request-URI we have
-// 	// Request-URI    = "*" | absoluteURI | abs_path | authority
-// 	// 1) "*"				: We do not check this for now
-// 	// 2) absoluteURI		: GET http://www.w3.org/pub/WWW/TheProject.html HTTP/1.1
-// 	// 3) abs_path			: GET /pub/WWW/TheProject.html HTTP/1.1
-// 	// 4) authoriy			: No idea what this is
-
-// 	int	i = 0;
-
-// 	if (_path[i] == 'h' && _path[i + 1] == 't' && _path[i + 2] == 't' && _path[i + 3] == 'p' 
-// 		 && ((_path[i + 4] == 's' && _path[i + 5] == ':') || _path[i + 4] == ':'))
-// 	{
-// 		// absoluteURI => we cut the beginning, the information is in the Host and Authorize header as well
-// 		std::size_t _path_pos = _path.find_first_of("//");
-// 		std::size_t abs_path_pos = _path.substr(_path_pos + 2).find_first_of("/");
-// 		_path = _path.substr(abs_path_pos);
-// 	}
-// 	std::size_t query_pos = _path.find_first_of("?");
-// 	std::size_t fragment_pos = _path.find_first_of("#");
-// 	if (_path == "/")
-// 		_interpreter_info.abs_path = "/";
-// 	else if (query_pos == std::string::npos && fragment_pos == std::string::npos)
-// 		_interpreter_info.abs_path = uriDecode(_path);
-// 	else if (fragment_pos == std::string::npos  && query_pos != std::string::npos)
-// 	{
-// 		// There is a query in _path
-// 		_interpreter_info.abs_path = uriDecode(_path.substr(0, query_pos));
-// 		_interpreter_info.query = uriDecode(_path.substr(query_pos));
-// 	}
-// 	else if (fragment_pos != std::string::npos  && query_pos == std::string::npos)
-// 	{
-// 		// There is a fragment in _path
-// 		_interpreter_info.abs_path = uriDecode(_path.substr(0, fragment_pos));
-// 		_interpreter_info.fragment = uriDecode(_path.substr(fragment_pos));
-// 	}
-// 	else
-// 	{
-// 		// There is a query and fragment in _path
-// 		_interpreter_info.abs_path = uriDecode(_path.substr(0, query_pos));
-// 		_interpreter_info.query = uriDecode(_path.substr(query_pos, fragment_pos - query_pos));
-// 		_interpreter_info.fragment = uriDecode(_path.substr(fragment_pos));
-// 	}
-// 	return 0;
-// }
-
 
 Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _method(), _headerStatus(HEADER), _chunksize() , _host(), _contentLength(), _transferEncoding(), _connection(true), _expect(false), _contenttype(), _location(), _server(), _accept() {}
 
@@ -420,4 +348,77 @@ void Request::clear()
 	this->_location = "";
 	this->_server = "";
 	this->_accept = std::list<std::string>();
+}
+
+
+std::string	Request::uriDecode(std::string value)
+{
+	std::string result;
+	result.reserve(value.size());
+
+	for (std::size_t i = 0; i < value.size(); ++i)
+	{
+		char ch = value[i];
+		
+		if (ch == '%' && (i + 2) < value.size())
+		{
+			std::string hex = value.substr(i + 1, 2);
+			// copy and paste, need to figure out how this line works
+			char dec = static_cast<char>(std::strtol(hex.c_str(), nullptr, 16));
+			result.push_back(dec);
+			i += 2;
+		}
+		else if (ch == '+')
+			result.push_back(' ');
+		else
+			result.push_back(ch);
+	}
+	return result;
+}
+
+int					Request::prepareInterpreter()
+{
+	// check what kind of Request-URI we have
+	// Request-URI    = "*" | absoluteURI | abs_path | authority
+	// 1) "*"				: We do not check this for now
+	// 2) absoluteURI		: GET http://www.w3.org/pub/WWW/TheProject.html HTTP/1.1
+	// 3) abs_path			: GET /pub/WWW/TheProject.html HTTP/1.1
+	// 4) authoriy			: No idea what this is
+
+	int	i = 0;
+
+	if (_path[i] == 'h' && _path[i + 1] == 't' && _path[i + 2] == 't' && _path[i + 3] == 'p' 
+		 && ((_path[i + 4] == 's' && _path[i + 5] == ':') || _path[i + 4] == ':'))
+	{
+		// absoluteURI => we cut the beginning, the information is in the Host and Authorize header as well
+		std::size_t _path_pos = _path.find_first_of("//");
+		std::size_t abs_path_pos = _path.substr(_path_pos + 2).find_first_of("/");
+		_path = _path.substr(abs_path_pos);
+	}
+	std::size_t query_pos = _path.find_first_of("?");
+	std::size_t fragment_pos = _path.find_first_of("#");
+	if (_path == "/")
+		_interpreter_info.abs_path = "/";
+	else if (query_pos == std::string::npos && fragment_pos == std::string::npos)
+		_interpreter_info.abs_path = uriDecode(_path);
+	else if (fragment_pos == std::string::npos  && query_pos != std::string::npos)
+	{
+		// There is a query in _path
+		_interpreter_info.abs_path = uriDecode(_path.substr(0, query_pos));
+		_interpreter_info.query = uriDecode(_path.substr(query_pos));
+	}
+	else if (fragment_pos != std::string::npos  && query_pos == std::string::npos)
+	{
+		// There is a fragment in _path
+		_interpreter_info.abs_path = uriDecode(_path.substr(0, fragment_pos));
+		_interpreter_info.fragment = uriDecode(_path.substr(fragment_pos));
+	}
+	else
+	{
+		// There is a query and fragment in _path
+		_interpreter_info.abs_path = uriDecode(_path.substr(0, query_pos));
+		_interpreter_info.query = uriDecode(_path.substr(query_pos, fragment_pos - query_pos));
+		_interpreter_info.fragment = uriDecode(_path.substr(fragment_pos));
+	}
+	return 0;
 }
