@@ -29,11 +29,19 @@ class Interpreter {
 		response		_response;
 		Server			_server;
 		location		_location;
+		bool			_state;
+		std::string		_full_path;
 
 		void	_findHostname();
 		void	_findLocation(const std::vector<location> &l);
+		void	_buildError(int error);
+		void	_build200();
+		void	_checkMethods();
+		void	_findFile();
+		void	_findDirectory();
+		void	_appendLocationToRoot();
 	public:
 		Interpreter(const Request &Request, Connection *connection);
+		int	send(const int &fd);
 		~Interpreter();
-
 };

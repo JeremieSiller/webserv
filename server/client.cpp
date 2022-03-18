@@ -94,9 +94,10 @@ int Client::sendResponse()
 	Interpreter i(this->_req, this->_connection);
 	
 	//testing purpose:
-	std::string response = "HTTP/1.1 200 Ok\r\nContent-length: 0\r\n\r\n";
-	if (send(this->_client_socket, response.c_str(), response.length(), 0) == -1)
+	if (i.send(this->_client_socket) == -1) {
 		return 0;
+	}
+		// if (send(this->_client_socket, response.c_str(), response.length(), 0) == -1)
 	//LOG_RED("Set header status to HEADER");
 	this->_req.clear();
 	return 1;

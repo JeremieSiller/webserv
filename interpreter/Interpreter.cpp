@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 // std::stringstream test("this_is_a_test_string");
 // std::string segment;
@@ -38,10 +40,19 @@ int		count_continues_matches(const std::vector<std::string> &path, const std::ve
 		uit++;
 		count++;
 	}
+	if (pit == path.begin() && path.empty() == false)
+		return -1;
 	return count;
 }
 
+inline bool ends_with(std::string const & value, std::string const & ending)
+{
+	if (ending.size() > value.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
 Interpreter::Interpreter(const Request &request, Connection *connection) : _request(request), _connection(connection) {
+	_state = 0;
 	_findHostname();
 	std::vector<std::string>::const_iterator it = _server.getServerName().begin();
 	while (it != _server.getServerName().end()) {
@@ -50,11 +61,23 @@ Interpreter::Interpreter(const Request &request, Connection *connection) : _requ
 	}
 	LOG_RED("Finding location...");
 	_findLocation(_server.getLocations());
+	if (_state == 1)
+		return ;
+	_checkMethods();
+	if (_state == 1)
+		return ;
+	_appendLocationToRoot();
+	if (_request.getInterpreterInfo().abs_path.back() == '/') {
+		_findDirectory();
+	} else {
+		_findFile();
+	}
 }
 
 Interpreter::~Interpreter() {
 
 }
+
 
 void	Interpreter::_findHostname() {
 	_server = _connection->getServer(_request.getHost());
@@ -72,13 +95,103 @@ void	Interpreter::_findLocation(std::vector<location> const &l) {
 		const std::vector<std::string>	sp = split_string(it->_path, '/');
 		const std::vector<std::string>	&up = split_string(_request.getInterpreterInfo().abs_path, '/');
 		int c = count_continues_matches(sp, up);
-		LOG_RED("DBEUG: " << c);
 		if (c > max) {
-			LOG_BLUE("DEBUG2");
 			_location = *it;
 			max = c;
 		}
 		it++;
 	}
+	if (max == -1) {
+		_buildError(404);
+		return ;
+	}
 	LOG_GREEN(_location._path << " is the most exact match for: " << _request.getInterpreterInfo().abs_path);
+}
+
+void	Interpreter::_buildError(int error) {
+	_state = true;
+	_response = response(error);
+	if (_request.getConnection() == true)
+		_response.add_header("Connection", "keep-alive");
+	_response.add_header("Server", "webvserv");
+	_response.add_header("Content-length", "0");
+}
+
+void	Interpreter::_checkMethods() {
+	if (_location._methods.find(_request.getMethod()) == _location._methods.end()) {
+		_buildError(403);
+	}
+}
+
+int	Interpreter::send(const int &fd) {
+	return (_response.write_response(fd));
+}
+
+void	Interpreter::_appendLocationToRoot() {
+	if (_location._root != "") {
+		_full_path = _location._root;
+	} else if (_server.getRoot() != "") {
+		_full_path = _server.getRoot();
+	} else {
+		_full_path = "";
+	}
+	if (_full_path.back() == '/') {
+		_full_path.pop_back();
+	}
+	_full_path += _location._path;
+	if (_full_path.back() == '/') {
+		_full_path.pop_back();
+	}
+	_full_path += _request.getInterpreterInfo().abs_path;
+}
+
+void	Interpreter::_findDirectory() {
+
+}
+
+void	Interpreter::_findFile() {
+	struct stat s;
+	if (stat(_full_path.c_str(), &s) == 0) {
+		LOG_RED("yop: " << _full_path);
+		if ( s.st_mode & S_IFREG) {
+			_build200();
+			LOG_GREEN("is file");
+		}
+	} else {
+		_buildError(404);
+	}
+}
+
+void	Interpreter::_build200() {
+	_state = true;
+	_response = response(200);
+	std::vector<char> vec;
+	if (FILE *fp = fopen(_full_path.c_str(), "r"))
+	{
+		char buf[1024];
+		size_t	c_length = 0;
+		while (size_t len = fread(buf, 1, sizeof(buf), fp))
+		{
+			vec.insert(vec.end(), buf, buf + len);
+			c_length += len;
+		}
+		fclose(fp);
+		std::stringstream ss;
+		ss << c_length;
+		if (_request.getConnection() == true)
+			_response.add_header("Connection", "keep-alive");
+		_response.add_header("Server", "webvserv");
+		_response.add_header("Content-length", ss.str());
+		if (ends_with(_full_path, ".html") || ends_with(_full_path, ".svg")) {
+			_response.add_header("Content-Type", "text/html");
+		} else {
+			_response.add_header("Content-Type", "media-type");
+		}
+		_response.add_body(vec);
+	} else
+	{
+		_buildError(403);
+	}
+	
+	
 }
