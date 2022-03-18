@@ -124,7 +124,6 @@ void webserv::run()
 					// parse then send response
 					// dont forget to clear vector in client !!
 					// either client status is DIE or WRITE which is the same
-					
 					LOG_BLUE("Writing to socket");
 					(*itr)->setClientStatus(Client::READING);
 					if (!(*itr)->sendResponse())

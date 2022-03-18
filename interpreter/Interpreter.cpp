@@ -1,21 +1,14 @@
 #include "Interpreter.hpp"
 
-Interpreter::Interpreter(const Request &request) : _request(request) {
-
+Interpreter::Interpreter(const Request &request, Connection *connection) : _request(request), _connection(connection) {
+	_findHostname();
+	_findLocation();
 }
 
 Interpreter::~Interpreter() {
 
 }
 
-void	Interpreter::findHostname(const std::vector<Server> &servers) {
-	std::vector<Server>::const_iterator it = servers.begin();
-	while (it != servers.end())
-	{
-		if (*it == _request.getHost()) {
-			_server = *it;
-			return ;
-		}
-	}
-	_server = *servers.begin();
+void	Interpreter::_findHostname() {
+	_server = _connection->getServer(_request.getHost());
 }

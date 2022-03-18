@@ -11,6 +11,7 @@
 # include "client.hpp"
 # include "../parsing/ConfigParser.hpp"
 # include "../main.hpp"
+# include "../interpreter/Interpreter.hpp"
 
 class webserv
 {

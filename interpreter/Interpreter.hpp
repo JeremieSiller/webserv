@@ -25,14 +25,14 @@ class Interpreter {
 	
 	private:
 		const Request	&_request;
+		Connection		*_connection;
 		response		_response;
 		Server			_server;
 
+		void	_findHostname();
+		void	_findLocation();
 	public:
-		Interpreter(const Request &Request);
+		Interpreter(const Request &Request, Connection *connection);
 		~Interpreter() {};
-
-		void	findHostname(const std::vector<Server> &servers);
-		void	findLocation();
 
 };

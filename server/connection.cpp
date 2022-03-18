@@ -37,7 +37,7 @@ Server & Connection::getServer(std::string const &serverName)
 {
 	for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
-		if (*it == serverName || (serverName == "localhost" && *it == "127.0.0.1"))
+		if (*it == serverName)
 			return *it;
 	}
 	return (*this->_servers.begin());
