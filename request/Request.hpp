@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/17 18:15:59 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/17 20:53:46 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,6 +155,7 @@ class Request
 		{
 			HEADER,
 			BODY,
+			COMPLETE,
 			INVALID
 		} headerstatus;
 
@@ -178,7 +179,7 @@ class Request
 
 		std::string _host;
 		size_t		_contentLength;
-		std::vector<std::string> _transferEncoding;
+		std::list<std::string> _transferEncoding;
 		
 		// false -> CLOSE;
 		// true -> keep-alive;
@@ -227,7 +228,7 @@ class Request
 		const int									&getChunkSize() const { return _chunksize; }
 		const size_t								&getContentLength() const { return _contentLength; }
 		const std::string 							&getHost() const { return _host; }
-		const std::vector<std::string>				&getTransferEncoding() const { return _transferEncoding; }
+		const std::list<std::string>				&getTransferEncoding() const { return _transferEncoding; }
 		const bool									&getConnection() const { return _connection; }
 		const bool									&getExpect() const { return _expect; }
 

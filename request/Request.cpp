@@ -6,14 +6,14 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/17 18:27:44 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/17 21:49:00 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 
 #include "Request.hpp"
-
+#include <sstream>
 // Request::Request(const char str[], int size) : _method(""), _path(""), _version(""), _headers(), _body(), _serverName(""), _type(COMPLETE), _ps(RequestLineMethod)
 // {
 // 	if (!str)
@@ -306,12 +306,14 @@ int Request::_parseHeader()
 	begin = pos;
 	pos = this->_header.find(' ', begin + 1);
 	if (pos == std::string::npos)
-	this->_path = std::string(this->_header.substr(begin + 1, pos));
+		return 0;
+	this->_path = std::string(this->_header.substr(begin + 1, pos - (begin + 1)));
 
 	begin = pos;
 	pos = this->_header.find(CRLF, begin + 1);
 	if (pos == std::string::npos)
-	this->_version = std::string(this->_header.substr(begin + 1, pos));
+		return 0;
+	this->_version = std::string(this->_header.substr(begin + 1, pos - (begin + 1)));
 
 	begin = pos;
 	// begin == \r
@@ -322,7 +324,7 @@ int Request::_parseHeader()
 		// HEADERNAME: OPTIONS, OPTIONS
 		// store everything in map then in individual things
 
-		pos = this->_header.find(':', begin + 2);
+		pos = this->_header.find(": ", begin + 2);
 		// if it cant find it we must be at the end of headers section
 		if (pos == std::string::npos)
 		{
@@ -331,19 +333,20 @@ int Request::_parseHeader()
 				return 0;
 			break;
 		}
-		headerName = std::string(this->_header.substr(begin + 2, pos));
+		headerName = std::string(this->_header.substr(begin + 2, pos - (begin + 2)));
 		if (this->_parsedHeader.count(headerName))
 			this->_parsedHeader[headerName] += ',';
 		else
 			this->_parsedHeader.insert(std::pair<std::string, std::string>(headerName, ""));
 		
 		// begin == ':'
-		// needs to find crlf after the :
+		// needs to find crlf after the ': '
+		// 
 		begin = pos;
-		pos = this->_header.find(CRLF, begin + 1);
+		pos = this->_header.find(CRLF, begin + 2);
 		if (pos == std::string::npos)
 			return 0;
-		this->_parsedHeader[headerName] += std::string(this->_header.substr(begin + 1, pos));
+		this->_parsedHeader[headerName] += std::string(this->_header.substr(begin + 2, pos - (begin + 2)));
 		begin = pos;
 	}
 	
@@ -360,13 +363,10 @@ int Request::_parseHeader()
 
 	if (this->_parsedHeader.count("Transfer-Encoding"))
 	{
-		if (this->_parsedHeader["Transfer-Encoding"].find("Chunked"))
-		{
-			// Chunked Data Transfer
-			// Means we have to parse Body each time to find the size
-
-
-		}
+		std::istringstream istream(std::string(this->_parsedHeader["Transfer-Encoding"])); 
+		std::string buf;
+		while (std::getline(istream, buf, ','))
+			this->_transferEncoding.push_back(buf);
 	}
 	else if (this->_parsedHeader.count("Content-Length"))
 		this->_contentLength = ::atoi(this->_parsedHeader["Content-Length"].c_str());
@@ -379,7 +379,6 @@ int Request::_parseHeader()
 
 	if (this->_parsedHeader.count("Content-Type"))
 	{
-
 	}
 	
 	if (this->_parsedHeader.count("Location"))
@@ -393,6 +392,13 @@ int Request::_parseHeader()
 void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
 	this->_body.insert(_body.end(), start, end);
+	if (std::find(this->_transferEncoding.begin(), this->_transferEncoding.end(), "Chunked") != this->_transferEncoding.end())
+	{
+		// still need to impletement check for first bytes till \r\n convert to integer check if read then read again
+		// ends on 0\r\n\r\n
+	}
+	else if (this->_body.size() >= this->_contentLength)
+		this->_headerStatus = COMPLETE;
 }
 
 void Request::clear()
@@ -407,7 +413,7 @@ void Request::clear()
 	this->_chunksize = 0;
 	this->_host = "";
 	this->_contentLength = 0;
-	this->_transferEncoding = std::vector<std::string>();
+	this->_transferEncoding = std::list<std::string>();
 	this->_connection = true;
 	this->_expect = false;
 	this->_contenttype = std::map<std::string, std::string>();

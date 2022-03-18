@@ -53,38 +53,38 @@ int	Client::readRequest()
 	std::vector<char>	buf(MAX_RECV_SIZE);
 	// char	buffer[MAX_RECV_SIZE] = {0};
 	int					ret;
-	size_t				len = 0;
 
 	ret = recv(this->_client_socket, buf.begin().base(), MAX_RECV_SIZE, 0);
 	if (ret <= 0)
 		return (ret);
 	std::vector<char>::const_iterator it = buf.begin();
-	while (it != buf.end()) {
+	while (it != (buf.begin() + ret)) {
 		std::cout << (*it);
-		it++;
+	 	it++;
 	}
 	std::cout << std::endl;
 	if (this->_req.getStatus() == Request::HEADER) {
 		LOG_YELLOW("Header_status = Header");
 		std::vector<char>::const_iterator pos = find_pattern(buf, std::vector<char> (EO_HEADER, EO_HEADER + 4));
-		if (pos == buf.end()) {
+		if (pos == (buf.begin() + ret)) {
 			LOG_RED("Not a valid HTTP header (in the first " << MAX_RECV_SIZE << " bytes");
 			_status = DIE; //is the same as WRITING! but writes 400 -> BAD request.
 			return 1;
 		}
 		else {
-			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(buf.begin()), pos));
-			this->_req.addBody(pos, static_cast<std::vector<char>::const_iterator>(buf.end()));
+			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(buf.begin()), pos + 4));
+			this->_req.addBody(pos + 4, static_cast<std::vector<char>::const_iterator>((buf.begin() + ret)));
 			//parse here
 			//parser header (and body?) -> only thing checked till here is that we have '\r\n\r\n'
 			//for testing purpose we are setting status to WRITE but this can differ depending on the header.
-			_status = WRITING;
 		}
 	}
 	else {
 		LOG_YELLOW("Header_status = Body");
-		this->_req.addBody(buf.begin(), static_cast<std::vector<char>::const_iterator>(buf.end()));
+		this->_req.addBody(buf.begin(), static_cast<std::vector<char>::const_iterator>((buf.begin() + ret)));
 	}
+	if (this->_req.getStatus() == Request::COMPLETE)
+		_status = WRITING;
 	return 1;
 }
 
@@ -97,7 +97,7 @@ int Client::sendResponse()
 	std::string response = "HTTP/1.1 200 Ok\r\nContent-length: 0\r\n\r\n";
 	if (send(this->_client_socket, response.c_str(), response.length(), 0) == -1)
 		return 0;
-	LOG_RED("Set header status to HEADER");
+	//LOG_RED("Set header status to HEADER");
 	this->_req.clear();
 	return 1;
 }
