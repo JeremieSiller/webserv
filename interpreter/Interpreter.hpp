@@ -19,7 +19,6 @@
 # include "../response/response.hpp"
 # include "../server/server.hpp"
 # include "../request/Request.hpp"
-# include "../server/location.hpp"
 # include "../server/connection.hpp"
 
 class Interpreter {
@@ -29,9 +28,10 @@ class Interpreter {
 		Connection		*_connection;
 		response		_response;
 		Server			_server;
+		location		_location;
 
 		void	_findHostname();
-		void	_findLocation();
+		void	_findLocation(const std::vector<location> &l);
 	public:
 		Interpreter(const Request &Request, Connection *connection);
 		~Interpreter();
