@@ -29,7 +29,6 @@ typedef struct s_location {
 	std::string						_upload_path;
 	std::string						_cgi_extension;
 	std::string						_cgi_path;
-	std::vector<struct s_location>	_locations;
 }	location;
 
 typedef struct s_server {

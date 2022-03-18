@@ -73,8 +73,4 @@ void	Interpreter::_findLocation(std::vector<location> const &l) {
 		}
 		it++;
 	}
-	if (tmp._locations.empty() == true) {
-		_location = tmp;
-		return ;
-	}
 }

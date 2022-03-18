@@ -72,11 +72,7 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 		throw unexpectedToken(it->content(), ", location needs a scope, expected \"{\"");
 	}
 	while (it != _tokens.end() && it->scope() > scope) {
-		if (it->type() == ConfigToken::LOCATION) {
-			location	b;
-			_checkLocation(it, b);
-			l._locations.push_back(b);
-		} else if (it->type() == ConfigToken::ROOT) {
+		if (it->type() == ConfigToken::ROOT) {
 			if (l._root != "") {
 				throw unexpectedToken(it->content(), ", can not be set twice");
 			}
