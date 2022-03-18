@@ -2,7 +2,12 @@
 
 Interpreter::Interpreter(const Request &request, Connection *connection) : _request(request), _connection(connection) {
 	_findHostname();
-	_findLocation();
+	std::vector<std::string>::const_iterator it = _server.getServerName().begin();
+	while (it != _server.getServerName().end()) {
+		LOG_BLUE("server-name: " << *it);
+		it++;
+	}
+	// _findLocation();
 }
 
 Interpreter::~Interpreter() {

@@ -16,10 +16,11 @@
 # include <map>
 # include <vector>
 # include <stdlib.h>
-# include "response/response.hpp"
-# include "server/server.hpp"
-# include "request/request.hpp"
-# include "location/location.hpp"
+# include "../response/response.hpp"
+# include "../server/server.hpp"
+# include "../request/Request.hpp"
+# include "../server/location.hpp"
+# include "../server/connection.hpp"
 
 class Interpreter {
 	
@@ -33,6 +34,6 @@ class Interpreter {
 		void	_findLocation();
 	public:
 		Interpreter(const Request &Request, Connection *connection);
-		~Interpreter() {};
+		~Interpreter();
 
 };

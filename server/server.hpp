@@ -37,6 +37,7 @@ class Server {
 	
 	public:
 
+		Server() : _server_name(), _error_pages(), _locations(), _max_body_size(), _root(), _autoindex() { }
 		Server(std::vector<std::string> const &server_name, std::map<int, std::string> const &error_pages, 
 			std::vector<location> const & locations, size_t const & max_body_size, std::string const & root, char const & autoindex)
 			: _server_name(server_name), _error_pages(error_pages), _locations(locations), _max_body_size(max_body_size), _root(root), _autoindex(autoindex)
@@ -54,7 +55,7 @@ class Server {
 			return *this;
 		}
 
-		std::string custommessage() { return this->_server_name[0]; }
+		// std::string custommessage() { return this->_server_name[0]; }
 		
 		// should return op codes
 		// depending on this server will formulate response
@@ -69,6 +70,12 @@ class Server {
 		}
 
 		~Server() {};
+		const std::vector<std::string>	&getServerName() const { return _server_name; }
+		const std::map<int, std::string> &getErrorPages() const { return _error_pages; }
+		const std::vector<location>		&getLocations() const { return _locations; }
+		const size_t					&getMaxBodySize() const { return _max_body_size; }
+		const std::string				&getRoot() const { return _root; }
+		const char						&getAutoIndex() const { return _autoindex; }
 };
 
 

@@ -146,7 +146,7 @@ static std::string const getReason(const int &code) {
  * @param status  sets the status code of the reponse, e.g. 200
  * @param version sets the http version, standard value is HTTP/1.1
  */
-response::response(const int &status, const std::string &version) : _statsusCode(status), _version(version), _bytes() , _has_body(false) {
+response::response(const int &status, const std::string &version) : _statusCode(status), _version(version), _bytes() , _has_body(false) {
 	_build();
 }
 
@@ -193,7 +193,7 @@ void	response::_pushEndOfLine() {
 void	response::_buildFirstLine() {
 	_bytes.insert(_bytes.begin(), _version.begin(), _version.end());
 	_bytes.push_back(' ');
-	std::string reason = getReason(_statsusCode);
+	std::string reason = getReason(_statusCode);
 	_bytes.insert(_bytes.end(), reason.begin(), reason.end());
 	_pushEndOfLine();
 }
@@ -223,3 +223,4 @@ void	response::add_body(const std::vector<char> &_body) {
 	_has_body = true;
 	_bytes.insert(_bytes.end(), _body.begin(), _body.end());
 }
+response::response() : _statusCode(), _version(), _bytes(), _has_body() {}
