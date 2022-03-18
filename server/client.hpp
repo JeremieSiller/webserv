@@ -19,6 +19,7 @@
 # include "connection.hpp"
 # include "../request/Request.hpp"
 # include "../main.hpp"
+# include "../interpreter/Interpreter.hpp"
 
 typedef int t_socket;
 

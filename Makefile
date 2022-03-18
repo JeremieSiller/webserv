@@ -18,6 +18,7 @@ INC =	interpreter/Interpreter.hpp	\
 		server/server.hpp			\
 		server/webserv.hpp			\
 		main.hpp					\
+		interpreter/Interpreter.hpp	\
 
 SRC =	main.cpp					\
 		parsing/AToken.cpp			\
@@ -29,7 +30,9 @@ SRC =	main.cpp					\
 		server/location.cpp			\
 		server/server.cpp			\
 		server/webserv.cpp			\
-		request/Request.cpp
+		request/Request.cpp			\
+		response/response.cpp		\
+		interpreter/Interpreter.cpp	\
 
 OBJ = $(SRC:.cpp=.o)
 

@@ -91,6 +91,8 @@ int	Client::readRequest()
 int Client::sendResponse()
 {
 	this->_status = READING;
+	Interpreter i(this->_req, this->_connection);
+	
 	//testing purpose:
 	std::string response = "HTTP/1.1 200 Ok\r\nContent-length: 0\r\n\r\n";
 	if (send(this->_client_socket, response.c_str(), response.length(), 0) == -1)
