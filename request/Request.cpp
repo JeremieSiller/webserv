@@ -217,6 +217,7 @@ void Request::setHeader(std::string const &header)
 	this->_headerStatus = BODY;
 	if (this->_parseHeader())
 		this->_headerStatus = INVALID;
+	prepareInterpreter();
 }
 
 int Request::_parseHeader()
