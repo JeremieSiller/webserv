@@ -6,7 +6,7 @@
 /*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/18 13:55:43 by jhagedor         ###   ########.fr       */
+/*   Updated: 2022/03/18 15:40:13 by jhagedor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -406,20 +406,20 @@ int					Request::prepareInterpreter()
 	{
 		// There is a query in _path
 		_interpreter_info.abs_path = uriDecode(_path.substr(0, query_pos));
-		_interpreter_info.query = uriDecode(_path.substr(query_pos));
+		_interpreter_info.query = uriDecode(_path.substr(query_pos + 1));
 	}
 	else if (fragment_pos != std::string::npos  && query_pos == std::string::npos)
 	{
 		// There is a fragment in _path
 		_interpreter_info.abs_path = uriDecode(_path.substr(0, fragment_pos));
-		_interpreter_info.fragment = uriDecode(_path.substr(fragment_pos));
+		_interpreter_info.fragment = uriDecode(_path.substr(fragment_pos + 1));
 	}
 	else
 	{
 		// There is a query and fragment in _path
 		_interpreter_info.abs_path = uriDecode(_path.substr(0, query_pos));
-		_interpreter_info.query = uriDecode(_path.substr(query_pos, fragment_pos - query_pos));
-		_interpreter_info.fragment = uriDecode(_path.substr(fragment_pos));
+		_interpreter_info.query = uriDecode(_path.substr(query_pos + 1, fragment_pos));
+		_interpreter_info.fragment = uriDecode(_path.substr(fragment_pos + 1));
 	}
 	return 0;
 }

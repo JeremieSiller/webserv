@@ -64,8 +64,13 @@ void	Interpreter::_findLocation(std::vector<location> const &l) {
 	std::vector<location>::const_iterator it = l.begin();
 	int		max = -1;
 	while (it != l.end()) {
+
+		std::cout << "Path: " << _request.getInterpreterInfo().abs_path << std::endl;
+		std::cout << "Query: " << _request.getInterpreterInfo().query << std::endl;
+		std::cout << "Frag: " << _request.getInterpreterInfo().fragment << std::endl;
+
 		const std::vector<std::string>	sp = split_string(it->_path, '/');
-		const std::vector<std::string>	&up = split_string(_request.getInterpreterInfo().abs_path, '/');		
+		const std::vector<std::string>	&up = split_string(_request.getInterpreterInfo().abs_path, '/');
 		int c = count_continues_matches(sp, up);
 		LOG_RED("DBEUG: " << c);
 		if (c > max) {
