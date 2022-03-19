@@ -29,7 +29,7 @@ void	webserv::_initializeConnections(ConfigParser const& p)
 		for (std::vector<server>::const_iterator serv = itr->_servers.begin(); serv != itr->_servers.end(); serv++)
 		{
 			// fill in max_client_size here still
-			this->_connections.back()->addServer(Server(serv->_server_names, serv->_error_pages, serv->_locations, INT_MAX, serv->_root, serv->_autoindex));
+			this->_connections.back()->addServer(Server(serv->_server_names, serv->_error_pages, serv->_locations, INT_MAX, serv->_root));
 		}
 	}
 }

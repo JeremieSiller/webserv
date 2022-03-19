@@ -62,6 +62,7 @@ void    ConfigParser::_setScopes() {
 void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, location &l) {
 	size_t scope = it->scope();
 	l._upload = -1;
+	l._autoindex = -1;
 	it++;
 	if (it->type() != ConfigToken::PATH) {
 		throw unexpectedToken(it->content(), ", location needs to have a path");
@@ -176,11 +177,31 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", _cgi_extension can not contain more than one path");
 			}
+		} else if (it->type() == ConfigToken::AUTO_INDEX) {
+			if (l._autoindex != -1) {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() != ConfigToken::OFF && it->type() != ConfigToken::ON) {
+				throw unexpectedToken(it->content(), ", autoindex needs to have paramter \'on\' or \'off\'");
+			}
+			if (it->type() == ConfigToken::ON) {
+				l._autoindex = true;
+			} else if (it->type() == ConfigToken::OFF) {
+				l._autoindex = false;
+			}
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", autoindex needs exaclty one arguement");
+			}
 		} else if (it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::EOF_INSTRUCT) {
 			throw unexpectedToken(it->content(), ", can not be in location scope");
 		} 
 		
 		it++;
+	}
+	if (l._autoindex == -1) {
+		l._autoindex = false;
 	}
 	if (l._upload == -1) {
 		l._upload = false;
@@ -190,7 +211,6 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connection &c) {
 	size_t scope = it->scope();
 	server s;
-	s._autoindex = -1;
 	it++;
 	while (it != _tokens.end() && it->scope() > scope) {
 		if (it->type() == ConfigToken::ROOT) {
@@ -220,23 +240,6 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			while (it->type() != ConfigToken::EOF_INSTRUCT) {
 				s._server_names.push_back(it->content());
 				it++;
-			}
-		} else if (it->type() == ConfigToken::AUTO_INDEX) {
-			if (s._autoindex != -1) {
-				throw unexpectedToken(it->content(), ", can not be set twice");
-			}
-			it++;
-			if (it->type() != ConfigToken::OFF && it->type() != ConfigToken::ON) {
-				throw unexpectedToken(it->content(), ", autoindex needs to have paramter \'on\' or \'off\'");
-			}
-			if (it->type() == ConfigToken::ON) {
-				s._autoindex = true;
-			} else if (it->type() == ConfigToken::OFF) {
-				s._autoindex = false;
-			}
-			it++;
-			if (it->type() != ConfigToken::EOF_INSTRUCT) {
-				throw unexpectedToken(it->content(), ", autoindex needs exaclty one arguement");
 			}
 		} else if (it->type() == ConfigToken::ERROR_PAGE) {
 			it++;
@@ -284,9 +287,6 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			throw unexpectedToken(it->content(), ", can not be in server scope");
 		}
 		it++;
-	}
-	if (s._autoindex == -1) {
-		s._autoindex = 0;
 	}
 	c._servers.push_back(s);
 	it++;
