@@ -14,8 +14,8 @@ class response
 private:
 	int					_statusCode;
 	std::string			_version;
-	std::vector<char>			_bytes;
-	bool						_has_body;
+	std::vector<char>			_header;
+	std::vector<char>			_body;
 	void	_build();
 	void	_buildFirstLine();
 	void	_pushEndOfLine();
@@ -25,7 +25,7 @@ public:
 	~response();
 	int		write_response(const int &fd); //writes the full response to filedescriptor
 	void	add_header(const std::string &attribute, const std::string &value);
-	void	add_body(const std::vector<char> &_body);
+	void	add_body(const std::vector<char> &body);
 };
 
 #endif

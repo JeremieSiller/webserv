@@ -6,15 +6,38 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <dirent.h>
 
-// std::stringstream test("this_is_a_test_string");
-// std::string segment;
-// std::vector<std::string> seglist;
-
-// while(std::getline(test, segment, '_'))
-// {
-//    seglist.push_back(segment);
-// }
+std::string	buildDirectoryListing(std::string const &dir, std::string const &abs_path) {
+	std::string ret = "";
+	ret += "<html>\n";
+	ret += "<head><title>Index of "+ abs_path + "</title></head>\n";
+	ret += "<body>\n";
+	ret += "<h1>Index of " + abs_path + "</h1><hr><pre><a href=\"../\">../</a>\n";
+	DIR *d;
+	struct dirent *dd;
+	d = opendir(dir.c_str());
+	if (d) {
+		while ((dd = readdir(d)) != NULL)
+		{
+			if (dd->d_name[0] != '.') {
+				ret += "<a href=\"" + abs_path + dd->d_name;
+				if (dd->d_type == DT_DIR)
+					ret += "/";
+				ret += "\">" + std::string(dd->d_name);
+				if (dd->d_type == DT_DIR)
+					ret += "/";
+				ret += "</a>\n";
+			}
+		}
+	}
+	else {
+		return "";
+	}
+	ret += "</body>\n";
+	ret += "</html>";
+	return ret;
+}
 
 std::vector<std::string>	split_string(const std::string &s, const char &c) {
 	std::stringstream ss;
@@ -54,11 +77,6 @@ inline bool ends_with(std::string const & value, std::string const & ending)
 Interpreter::Interpreter(const Request &request, Connection *connection) : _request(request), _connection(connection) {
 	_state = 0;
 	_findHostname();
-	_response.add_header("Server", "webvserv");
-	if (_request.getConnection() == true)
-		_response.add_header("Connection", "keep-alive");
-	else
-		_response.add_header("Connection", "close");
 	std::vector<std::string>::const_iterator it = _server.getServerName().begin();
 	while (it != _server.getServerName().end()) {
 		LOG_BLUE("server-name: " << *it);
@@ -75,7 +93,6 @@ Interpreter::Interpreter(const Request &request, Connection *connection) : _requ
 	if (_request.getInterpreterInfo().abs_path.back() == '/') {
 		_findDirectory();
 	} else {
-		LOG_BLUE("HERE");
 		_findFile();
 	}
 }
@@ -163,7 +180,15 @@ void	Interpreter::_findDirectory() {
 			it++;
 		}
 		if (_server.getAutoIndex() == true) {
-			// directory lsiting.
+			LOG_RED("");
+			LOG_YELLOW("lisitng directorys!");
+			LOG_RED("");
+			std::string html = buildDirectoryListing(_full_path, _request.getInterpreterInfo().abs_path);
+			if (html != "") {
+				_buildText(200, html);
+			} else {
+				_buildError(404);
+			}
 		} else {
 			_buildError(403);
 		}
@@ -183,6 +208,7 @@ void	Interpreter::_findFile() {
 			LOG_RED("Is not file");
 			_build(301, "standard-html/301.html");
 			_response.add_header("Location", _request.getInterpreterInfo().abs_path + "/");
+			LOG_GREEN("301!");
 		}
 	} else {
 		_buildError(404);
@@ -192,6 +218,7 @@ void	Interpreter::_findFile() {
 void	Interpreter::_build(int code, std::string const &_file) {
 	_state = true;
 	_response = response(code);
+	_buildStandard();
 	std::vector<char> vec;
 	if (FILE *fp = fopen(_file.c_str(), "r"))
 	{
@@ -216,6 +243,26 @@ void	Interpreter::_build(int code, std::string const &_file) {
 	{
 		_buildError(403);
 	}	
+}
+
+void	Interpreter::_buildText(int code, std::string const &text) {
+	_state = true;
+	_response = response(code);
+	_buildStandard();
+	std::stringstream ss;
+	ss << text.length();
+	_response.add_header("Content-length", ss.str());
+	_response.add_header("Content-Type", "text/html");
+	std::vector<char> vec(text.begin(), text.end());
+	_response.add_body(vec);
+}
+
+void	Interpreter::_buildStandard() {
+	_response.add_header("Server", "webvserv");
+	if (_request.getConnection() == true)
+		_response.add_header("Connection", "keep-alive");
+	else
+		_response.add_header("Connection", "close");
 }
 
 // void	Interpreter::_build301() {

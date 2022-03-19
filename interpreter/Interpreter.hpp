@@ -37,7 +37,9 @@ class Interpreter {
 		void	_buildError(int error);
 		// void	_build200();
 		// void	_build301();
+		void	_buildStandard();
 		void	_build(int code, std::string const &_file);
+		void	_buildText(int code, std::string const &text);
 		void	_checkMethods();
 		void	_findFile();
 		void	_findDirectory();
