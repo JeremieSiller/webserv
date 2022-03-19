@@ -128,7 +128,6 @@ void webserv::run()
 					(*itr)->setClientStatus(Client::READING);
 					if (!(*itr)->sendResponse())
 					{
-						LOG_RED("Could not write to socket, removing client");
 						this->_removeClient(itr);
 					}
 					LOG_GREEN("Send repsonse to client");

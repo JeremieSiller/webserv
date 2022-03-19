@@ -92,13 +92,14 @@ int Client::sendResponse()
 {
 	this->_status = READING;
 	Interpreter i(this->_req, this->_connection);
-	
-	//testing purpose:
 	if (i.send(this->_client_socket) == -1) {
+		LOG_RED("Could not write to socket");
 		return 0;
 	}
-		// if (send(this->_client_socket, response.c_str(), response.length(), 0) == -1)
-	//LOG_RED("Set header status to HEADER");
+	if (_req.getConnection() == false) {
+		LOG_BLUE("Client wished to close the connection\n");
+		return 0;
+	}
 	this->_req.clear();
 	return 1;
 }

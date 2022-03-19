@@ -146,7 +146,7 @@ static std::string const getReason(const int &code) {
  * @param status  sets the status code of the reponse, e.g. 200
  * @param version sets the http version, standard value is HTTP/1.1
  */
-response::response(const int &status, const std::string &version) : _statusCode(status), _version(version), _bytes() , _has_body(false) {
+response::response(const int &status, const std::string &version) : _statusCode(status), _version(version), _header(), _body() {
 	_build();
 }
 
@@ -163,10 +163,10 @@ response::~response() { }
  * @return int returns the value of the write-call
  */
 int	response::write_response(const int &fd) {
-	if (_has_body == false) {
-		_pushEndOfLine();
-	}
-	return (write(fd, _bytes.begin().base(), _bytes.size()));
+	_pushEndOfLine();
+	_header.insert(_header.end(), _body.begin(), _body.end());
+	return (write(fd, _header.begin().base(), _header.size()));
+
 }
 
 /**
@@ -182,8 +182,8 @@ void	response::_build() {
  * to the end of the vector 
  */
 void	response::_pushEndOfLine() {
-	_bytes.push_back('\r');
-	_bytes.push_back('\n');
+	_header.push_back('\r');
+	_header.push_back('\n');
 }
 
 /**
@@ -191,10 +191,10 @@ void	response::_pushEndOfLine() {
  * looking like e.g. this: "HTTP/1.1 200 ok\r\n"
  */
 void	response::_buildFirstLine() {
-	_bytes.insert(_bytes.begin(), _version.begin(), _version.end());
-	_bytes.push_back(' ');
+	_header.insert(_header.end(), _version.begin(), _version.end());
+	_header.push_back(' ');
 	std::string reason = getReason(_statusCode);
-	_bytes.insert(_bytes.end(), reason.begin(), reason.end());
+	_header.insert(_header.end(), reason.begin(), reason.end());
 	_pushEndOfLine();
 }
 
@@ -206,10 +206,10 @@ void	response::_buildFirstLine() {
  * @param value the vaue to be put after the keyword
  */
 void	response::add_header(const std::string &attribute, const std::string &value) {
-	_bytes.insert(_bytes.end(), attribute.begin(), attribute.end());
-	_bytes.push_back(':');
-	_bytes.push_back(' ');
-	_bytes.insert(_bytes.end(), value.begin(), value.end());
+	_header.insert(_header.end(), attribute.begin(), attribute.end());
+	_header.push_back(':');
+	_header.push_back(' ');
+	_header.insert(_header.end(), value.begin(), value.end());
 	_pushEndOfLine();
 }
 
@@ -218,9 +218,8 @@ void	response::add_header(const std::string &attribute, const std::string &value
  * automatically inserts a EOL so the headers end is defined with two EOL's (\r\n\r\n)
  * @param _body a vector that contains all bytes to add to the body
  */
-void	response::add_body(const std::vector<char> &_body) {
-	_pushEndOfLine();
-	_has_body = true;
-	_bytes.insert(_bytes.end(), _body.begin(), _body.end());
+void	response::add_body(const std::vector<char> &body) {
+	_body.insert(_body.end(), body.begin(), body.end());
 }
-response::response() : _statusCode(), _version(), _bytes(), _has_body() {}
+
+response::response() : _statusCode(), _version(), _header(), _body() {}
