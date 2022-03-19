@@ -25,7 +25,7 @@ char EO_HEADER[] = {'\r', '\n', '\r', '\n'};
  * @param pattern the pattern to find
  * @return std::vector<char>::const_iterator the position of pattern in data (std::npos if not found);
  */
-std::vector<char>::const_iterator	find_pattern(const std::vector<char> &data, const std::vector<char> &pattern) {
+std::vector<char>::const_iterator	Client::find_pattern(const std::vector<char> &data, const std::vector<char> &pattern) {
 	return std::search(data.begin(), data.end(), pattern.begin(), pattern.end());
 }
 
@@ -38,15 +38,7 @@ Client::~Client()
 	close(this->_client_socket);
 }
 
-int strHexDec(std::string str)
-{
-	int bruh = 0;
-	for (int i = str.length() - 1; i >= 0; --i)
-	{
-		bruh += ((str[i] >= 'A' ? str[i] - 'A' + 10 : str[i] - '0') << (i - str.length() - 1) * 4);
-	}
-	return bruh;
-}
+
 
 int	Client::readRequest()
 {
