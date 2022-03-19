@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/03/17 21:50:10 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/19 18:02:06 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ class Client
 			DIE
 		}clientstatus;
 
+		static std::vector<char>::const_iterator	find_pattern(const std::vector<char> &data, const std::vector<char> &pattern);
 
 		
 	private:
@@ -61,14 +62,4 @@ class Client
 		int				sendResponse();
 		
 		Request			&getRequest() { return this->_req; }
-
-		// Client &operator=(const Client &in)
-		// {
-		// 	this->_addr = in._addr;
-		// 	this->_client_socket = in._client_socket;
-		// 	// this->_request = in._request;
-		// 	this->_status = in._status;
-		// 	return *this;
-		// }
-
 };
