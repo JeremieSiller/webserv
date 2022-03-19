@@ -18,6 +18,7 @@ INC =	interpreter/Interpreter.hpp	\
 		server/webserv.hpp			\
 		main.hpp					\
 		interpreter/Interpreter.hpp	\
+		interpreter/cgi.hpp			\
 
 SRC =	main.cpp					\
 		parsing/AToken.cpp			\
@@ -31,6 +32,7 @@ SRC =	main.cpp					\
 		request/Request.cpp			\
 		response/response.cpp		\
 		interpreter/Interpreter.cpp	\
+		interpreter/cgi.cpp			\
 
 #server/location.hpp			\
 #server/location.cpp			\
