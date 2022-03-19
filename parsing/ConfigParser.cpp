@@ -211,6 +211,9 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connection &c) {
 	size_t scope = it->scope();
 	server s;
+	s._error_pages[400] = "standard-html/400.html";
+	s._error_pages[403] = "standard-html/403.html";
+	s._error_pages[404] = "standard-html/404.html";
 	it++;
 	while (it != _tokens.end() && it->scope() > scope) {
 		if (it->type() == ConfigToken::ROOT) {
@@ -257,9 +260,6 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			}
 			if (!is_file(it->content())) {
 				throw unexpectedToken(it->content(), "could not find file");
-			}
-			if (s._error_pages[error_code] != "") {
-				throw unexpectedToken((it - 1)->content(), ", can not set error_page twice");
 			}
 			s._error_pages[error_code] = it->content();
 			it++;

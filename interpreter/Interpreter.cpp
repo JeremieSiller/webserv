@@ -134,7 +134,31 @@ void	Interpreter::_findLocation(std::vector<location> const &l) {
 void	Interpreter::_buildError(int error) {
 	_state = true;
 	_response = response(error);
-	_response.add_header("Content-length", "0");
+	_buildStandard();
+	std::vector<char> vec;
+	if (FILE *fp = fopen(_server.getErrorPages().find(error)->second.c_str(), "r"))
+	{
+		char buf[1024];
+		size_t	c_length = 0;
+		while (size_t len = fread(buf, 1, sizeof(buf), fp))
+		{
+			vec.insert(vec.end(), buf, buf + len);
+			c_length += len;
+		}
+		fclose(fp);
+		std::stringstream ss;
+		ss << c_length;
+		_response.add_header("Content-length", ss.str());
+		_response.add_header("Content-Type", "text/html");
+		_response.add_body(vec);
+	} else {
+		vec.push_back('5');
+		vec.push_back('0');
+		vec.push_back('0');
+		_response.add_body(vec);
+		_response.add_header("Content-Type", "text/html");
+		_response.add_header("Content-length", "3");
+	}
 }
 
 void	Interpreter::_checkMethods() {
@@ -185,9 +209,6 @@ void	Interpreter::_findDirectory() {
 			it++;
 		}
 		if (_location._autoindex == true) {
-			LOG_RED("");
-			LOG_YELLOW("lisitng directorys!");
-			LOG_RED("");
 			std::string html = buildDirectoryListing(_full_path, _request.getInterpreterInfo().abs_path);
 			if (html != "") {
 				_buildText(200, html);
@@ -247,7 +268,7 @@ void	Interpreter::_build(int code, std::string const &_file) {
 	} else
 	{
 		_buildError(403);
-	}	
+	}
 }
 
 void	Interpreter::_buildText(int code, std::string const &text) {
