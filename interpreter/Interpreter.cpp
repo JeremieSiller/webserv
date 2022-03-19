@@ -54,6 +54,11 @@ inline bool ends_with(std::string const & value, std::string const & ending)
 Interpreter::Interpreter(const Request &request, Connection *connection) : _request(request), _connection(connection) {
 	_state = 0;
 	_findHostname();
+	_response.add_header("Server", "webvserv");
+	if (_request.getConnection() == true)
+		_response.add_header("Connection", "keep-alive");
+	else
+		_response.add_header("Connection", "close");
 	std::vector<std::string>::const_iterator it = _server.getServerName().begin();
 	while (it != _server.getServerName().end()) {
 		LOG_BLUE("server-name: " << *it);
@@ -70,6 +75,7 @@ Interpreter::Interpreter(const Request &request, Connection *connection) : _requ
 	if (_request.getInterpreterInfo().abs_path.back() == '/') {
 		_findDirectory();
 	} else {
+		LOG_BLUE("HERE");
 		_findFile();
 	}
 }
@@ -106,9 +112,6 @@ void	Interpreter::_findLocation(std::vector<location> const &l) {
 void	Interpreter::_buildError(int error) {
 	_state = true;
 	_response = response(error);
-	if (_request.getConnection() == true)
-		_response.add_header("Connection", "keep-alive");
-	_response.add_header("Server", "webvserv");
 	_response.add_header("Content-length", "0");
 }
 
@@ -141,7 +144,32 @@ void	Interpreter::_appendLocationToRoot() {
 }
 
 void	Interpreter::_findDirectory() {
-
+	struct stat s;
+	if (stat(_full_path.c_str(), &s) == 0) {
+		LOG_BLUE("Directory-> Full_path: " << _full_path);
+		std::vector<std::string>::const_iterator it = _location._index.begin();
+		while (it != _location._index.end())
+		{
+			std::string	index_path = _full_path + *it;
+			if (stat(index_path.c_str(), &s) == 0) {
+				if (s.st_mode & S_IFREG) {
+					_build(200, index_path);
+					return ;
+				} else {
+					_buildError(403);
+					return ;
+				}
+			}
+			it++;
+		}
+		if (_server.getAutoIndex() == true) {
+			// directory lsiting.
+		} else {
+			_buildError(403);
+		}
+	} else {
+		_buildError(404);
+	}
 }
 
 void	Interpreter::_findFile() {
@@ -149,19 +177,23 @@ void	Interpreter::_findFile() {
 	if (stat(_full_path.c_str(), &s) == 0) {
 		LOG_RED("yop: " << _full_path);
 		if ( s.st_mode & S_IFREG) {
-			_build200();
+			_build(200, _full_path);
 			LOG_GREEN("is file");
+		} else {
+			LOG_RED("Is not file");
+			_build(301, "standard-html/301.html");
+			_response.add_header("Location", _request.getInterpreterInfo().abs_path + "/");
 		}
 	} else {
 		_buildError(404);
 	}
 }
 
-void	Interpreter::_build200() {
+void	Interpreter::_build(int code, std::string const &_file) {
 	_state = true;
-	_response = response(200);
+	_response = response(code);
 	std::vector<char> vec;
-	if (FILE *fp = fopen(_full_path.c_str(), "r"))
+	if (FILE *fp = fopen(_file.c_str(), "r"))
 	{
 		char buf[1024];
 		size_t	c_length = 0;
@@ -173,11 +205,8 @@ void	Interpreter::_build200() {
 		fclose(fp);
 		std::stringstream ss;
 		ss << c_length;
-		if (_request.getConnection() == true)
-			_response.add_header("Connection", "keep-alive");
-		_response.add_header("Server", "webvserv");
 		_response.add_header("Content-length", ss.str());
-		if (ends_with(_full_path, ".html") || ends_with(_full_path, ".svg")) {
+		if (ends_with(_full_path, ".html")) {
 			_response.add_header("Content-Type", "text/html");
 		} else {
 			_response.add_header("Content-Type", "media-type");
@@ -186,7 +215,9 @@ void	Interpreter::_build200() {
 	} else
 	{
 		_buildError(403);
-	}
-	
-	
+	}	
 }
+
+// void	Interpreter::_build301() {
+// 	_state = true;
+// }
