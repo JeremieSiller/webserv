@@ -184,7 +184,7 @@ void	Interpreter::_findDirectory() {
 			}
 			it++;
 		}
-		if (_server.getAutoIndex() == true) {
+		if (_location._autoindex == true) {
 			LOG_RED("");
 			LOG_YELLOW("lisitng directorys!");
 			LOG_RED("");

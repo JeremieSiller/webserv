@@ -32,15 +32,14 @@ class Server {
 		std::vector<location>			_locations;
 		size_t							_max_body_size;	// max upload file size. Size identifier needs to be handled
 		std::string						_root; 			//root where to finde files -> will be passed on to location which will than append its own root (I guess xD)
-		char							_autoindex;
 
 	
 	public:
 
-		Server() : _server_name(), _error_pages(), _locations(), _max_body_size(), _root(), _autoindex() { }
+		Server() : _server_name(), _error_pages(), _locations(), _max_body_size(), _root() { }
 		Server(std::vector<std::string> const &server_name, std::map<int, std::string> const &error_pages, 
-			std::vector<location> const & locations, size_t const & max_body_size, std::string const & root, char const & autoindex)
-			: _server_name(server_name), _error_pages(error_pages), _locations(locations), _max_body_size(max_body_size), _root(root), _autoindex(autoindex)
+			std::vector<location> const & locations, size_t const & max_body_size, std::string const & root)
+			: _server_name(server_name), _error_pages(error_pages), _locations(locations), _max_body_size(max_body_size), _root(root)
 		{
 		}
 
@@ -51,7 +50,6 @@ class Server {
 			this->_locations = in._locations;
 			this->_max_body_size = in._max_body_size;
 			this->_root = in._root;
-			this->_autoindex = in._autoindex;
 			return *this;
 		}
 
@@ -75,7 +73,6 @@ class Server {
 		const std::vector<location>		&getLocations() const { return _locations; }
 		const size_t					&getMaxBodySize() const { return _max_body_size; }
 		const std::string				&getRoot() const { return _root; }
-		const char						&getAutoIndex() const { return _autoindex; }
 };
 
 
