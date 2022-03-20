@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/19 19:06:57 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/19 19:50:44 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,8 +129,9 @@ int Request::_parseHeader()
 
 int strHexDec(std::string str)
 {
+	std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){ return std::toupper(c); });
 	int bruh = 0;
-	for (int i = str.length() - 1; i >= 0; --i)
+	for (int i = 0; i < str.length(); ++i)
 		bruh += ((str[i] >= 'A') ? (str[i] - 'A' + 10) : (str[i] - '0')) * (1 << ((str.length() - 1 - i) * 4));
 	return bruh;
 }
