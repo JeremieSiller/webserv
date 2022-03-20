@@ -20,6 +20,8 @@ const std::string	ConfigToken::identity[] = {
 	"GET",
 	"POST",
 	"DELETE",
+	"PUT",
+	"HEAD",
 	"index",
 	"upload_enable",
 	"upload_path",

@@ -247,7 +247,7 @@ void	Interpreter::_build(int code, std::string const &_file) {
 	_buildStandard();
 	FILE *fp;
 	std::vector<char> vec;
-	if (_location._cgi_extension != "") {
+	if (_location._cgi_extension == ".bla") { //TODO
 		LOG_YELLOW("CGI");
 		cgi c(_request, _location, _file);
 		fp = c.getOutput();

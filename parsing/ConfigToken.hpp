@@ -23,6 +23,8 @@ public:
 		GET,
 		POST,
 		DELTE,
+		PUT,
+		HEAD,
 		INDEX,
 		UPLOAD_ENABLE,
 		UPLOAD_PATH,

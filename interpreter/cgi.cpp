@@ -33,8 +33,8 @@ void	cgi::_setEnv() {
 	_env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	if (!_req.getBody().empty())
 		_env["CONTENT_LENGTH"] = to_string(_req.getContentLength());
-	// if (_req.getContentType() != "") // ??
-	// 	_env["CONTENT_TYPE"] = _req.getContentType();
+	_env["CONTENT_TYPE"] = _req.getParsedHeader().find("Content-Type")->second;
+	LOG_RED("Content-tyepe: " << _env["CONTENT_TYPE"]);
 	_env["PATH_INFO"] = _path;
 	_env["PATH_TRANSLATED"] = _path;
 	_env["QUERY_STRING"] = _req.getInterpreterInfo().query;
@@ -49,6 +49,8 @@ void	cgi::_setEnv() {
 	_env["SERVER_SOFTWARE"] = "webserv";
 	_env["REDIRECT_STATUS"] = "200";
 	_env["SCRIPT_NAME"] = _path;
+	_env["REQUEST_URI"] = _path;
+	_env["AUTH_TYPE"] = "";
 }
 
 void	cgi::_runCgi() {
@@ -56,6 +58,8 @@ void	cgi::_runCgi() {
 	fdin = fileno(_input);
 	fdout = fileno(_output);
 	write(fdin, _req.getBody().begin().base(), _req.getBody().size());
+	write(1, _req.getBody().begin().base(), _req.getBody().size());
+	lseek(fdin, 0, SEEK_SET);
 	int	pid = fork();
 	if (pid == -1) {
 		LOG_RED("Fork failed");
@@ -68,8 +72,8 @@ void	cgi::_runCgi() {
 		if (dup2(fdout, 1) == -1) {
 			exit(99);
 		}
-		close(fdin);
-		close(fdout);
+		// close(fdin);
+		// close(fdout);
 		char **arr = (char **)calloc(sizeof(char *), 3);
 		arr[0] = &(_loc._cgi_path[0]); 
 		arr[1] = &(_path[0]);

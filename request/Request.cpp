@@ -194,7 +194,7 @@ void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>
 void Request::clear()
 {
 	this->_header = "";
-	this->_body = std::vector<char>();
+	this->_body.clear();
 	this->_parsedHeader = std::map<std::string, std::string>();
 	this->_version = "";
 	this->_path = "";

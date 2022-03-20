@@ -112,7 +112,7 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 			if (it->type() == ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", method need atleast one arguement");
 			}
-			while (it->type() != ConfigToken::EOF_INSTRUCT && (it->type() == ConfigToken::POST || it->type() == ConfigToken::DELTE || it->type() == ConfigToken::GET)) {
+			while (it->type() != ConfigToken::EOF_INSTRUCT && (it->type() == ConfigToken::POST || it->type() == ConfigToken::DELTE || it->type() == ConfigToken::GET || it->type() == ConfigToken::PUT || it->type() == ConfigToken::HEAD)) { //TODO
 				if (l._methods.insert(it->content()).second == false) {
 					throw unexpectedToken(it->content(), ", specific method can not be set twice");
 				}

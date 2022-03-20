@@ -60,14 +60,21 @@ int	Client::readRequest()
 		std::cout << (*it);
 	 	it++;
 	}
+	it = buf.begin();
+	while (it != (buf.begin() + ret)) {
+		std::cout << (int)(*it) << ' ';
+	 	it++;
+	}
+	LOG_YELLOW("buf size: " << buf.size());
 	std::cout << std::endl;
 	if (this->_req.getStatus() == Request::HEADER) {
 		LOG_YELLOW("Header_status = Header");
 		std::vector<char>::const_iterator pos = find_pattern(buf, std::vector<char> (EO_HEADER, EO_HEADER + 4));
-		if (pos == (buf.begin() + ret)) {
+		LOG_YELLOW("pos: " << (int)*pos);
+		if (pos == (buf.end())) {
 			LOG_RED("Not a valid HTTP header (in the first " << MAX_RECV_SIZE << " bytes");
-			_status = WRITING; //is the same as WRITING! but writes 400 -> BAD request.
-			this->_req.setStatus(Request::INVALID);
+			_status = READING; //is the same as WRITING! but writes 400 -> BAD request.
+			// this->_req.setStatus(Request::INVALID);
 			return 1;
 		}
 		else {
@@ -89,10 +96,12 @@ int Client::sendResponse()
 	this->_status = READING;
 	Interpreter i(this->_req, this->_connection);
 	if (i.send(this->_client_socket) == -1) {
+		this->_req.clear();
 		LOG_RED("Could not write to socket");
 		return 0;
 	}
 	if (_req.getConnection() == false) {
+		this->_req.clear();
 		LOG_BLUE("Client wished to close the connection\n");
 		return 0;
 	}
