@@ -8,6 +8,7 @@
 #include <fstream>
 #include <dirent.h>
 #include "cgi.hpp"
+#include <fcntl.h>
 
 std::string	buildDirectoryListing(std::string const &dir, std::string const &abs_path) {
 	std::string ret = "";
@@ -220,7 +221,7 @@ void	Interpreter::_findDirectory() {
 				_buildError(404);
 			}
 		} else {
-			_buildError(403);
+			_buildError(404);
 		}
 	} else {
 		_buildError(404);
@@ -231,12 +232,33 @@ void	Interpreter::_findFile() {
 	struct stat s;
 	if (stat(_full_path.c_str(), &s) == 0) {
 		if ( s.st_mode & S_IFREG) {
+			if (_request.getMethod() == "PUT") {
+				LOG_YELLOW("file already exists");
+				FILE  *fp = fopen(_full_path.c_str(), "w");
+				if (fp) {
+					fwrite(_request.getBody().begin().base(), 1, _request.getBody().size(), fp);
+					fclose(fp);
+					_buildText(204, "");
+					return ;
+				}
+			}
 			_build(200, _full_path);
 		} else {
 			_build(301, "standard-html/301.html");
 			_response.add_header("Location", _request.getInterpreterInfo().abs_path + "/");
 		}
 	} else {
+		if (_request.getMethod() == "PUT") {
+			FILE *fp = fopen(_full_path.c_str(), "w");
+			if (fp) {
+				// write(1, _request.getBody().begin().base(), _request.getBody().size());
+				fwrite(_request.getBody().begin().base(), 1, _request.getBody().size(), fp);
+				_buildText(201, "");
+				fclose(fp);
+				return ;
+			}
+		}
+
 		_buildError(404);
 	}
 }

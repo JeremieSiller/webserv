@@ -70,7 +70,7 @@ class Request
 
 		std::string _host;
 		size_t		_contentLength;
-		std::list<std::string> _transferEncoding;
+		std::string _transferEncoding;
 		
 		// false -> CLOSE;
 		// true -> keep-alive;
@@ -132,7 +132,7 @@ class Request
 		const int									&getChunkSize() const { return _chunksize; }
 		const size_t								&getContentLength() const { return _contentLength; }
 		const std::string 							&getHost() const { return _host; }
-		const std::list<std::string>				&getTransferEncoding() const { return _transferEncoding; }
+		const std::string							&getTransferEncoding() const { return _transferEncoding; }
 		const bool									&getConnection() const { return _connection; }
 		const bool									&getExpect() const { return _expect; }
 		const std::map<std::string, std::vector<char> > &getUrlEncode() const { return this->_url_encode; }

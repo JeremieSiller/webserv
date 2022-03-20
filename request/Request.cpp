@@ -21,6 +21,7 @@ Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _m
 void Request::setHeader(std::string const &header)
 {
 	this->_header += header;
+	LOG_RED("header: " << this->_header);
 	//this->_headerStatus = BODY;
 }
 
@@ -98,10 +99,11 @@ int Request::parseHeader()
 
 	if (this->_parsedHeader.count("Transfer-Encoding"))
 	{
-		std::istringstream istream(std::string(this->_parsedHeader["Transfer-Encoding"])); 
-		std::string buf;
-		while (std::getline(istream, buf, ','))
-			this->_transferEncoding.push_back(buf);
+		this->_transferEncoding = this->_parsedHeader["Transfer-Encoding"];
+		// std::istringstream istream(std::string(this->_parsedHeader["Transfer-Encoding"])); 
+		// std::string buf;
+		// while (std::getline(istream, buf, ','))
+		// 	this->_transferEncoding.push_back(buf);
 	}
 	else if (this->_parsedHeader.count("Content-Length"))
 		this->_contentLength = ::atoi(this->_parsedHeader["Content-Length"].c_str());
@@ -265,13 +267,14 @@ void Request::_fillUrlEncode()
 
 void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
-	if (std::find(this->_transferEncoding.begin(), this->_transferEncoding.end(), "chunked") != this->_transferEncoding.end())
+	if (this->_parsedHeader["Transfer-Encoding"].find("chunked") != std::string::npos || this->_parsedHeader["Transfer-Encoding"] == "chunked")
 	{
 		std::vector<char> newbuf = this->_parseChunked(start, end);
 		this->_body.insert(_body.end(), newbuf.begin(), newbuf.end());
 	}
 	else
 	{
+
 		this->_body.insert(_body.end(), start, end);
 		if (this->_body.size() >= this->_contentLength)
 			this->_headerStatus = COMPLETE;
@@ -279,10 +282,10 @@ void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>
 	
 	// Content-Type is multipart boundary
 	// Everything is parsed into boundary thing
-	if (this->_headerStatus == COMPLETE && this->_boundary.size() > 1)
-		this->_fillboundary();
-	else if (this->_headerStatus == COMPLETE && this->_parsedHeader["Content-Type"] == "application/x-www-form-urlencoded")
-		this->_fillUrlEncode();
+	// if (this->_headerStatus == COMPLETE && this->_boundary.size() > 1)
+	// 	this->_fillboundary();
+	// else if (this->_headerStatus == COMPLETE && this->_parsedHeader["Content-Type"] == "application/x-www-form-urlencoded")
+	// 	this->_fillUrlEncode();
 }
 
 void Request::clear()
@@ -297,7 +300,7 @@ void Request::clear()
 	this->_chunksize = 0;
 	this->_host = "";
 	this->_contentLength = 0;
-	this->_transferEncoding = std::list<std::string>();
+	this->_transferEncoding ="";
 	this->_connection = true;
 	this->_expect = false;
 	this->_contenttype ="";
