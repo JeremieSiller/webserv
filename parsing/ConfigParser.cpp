@@ -214,6 +214,7 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 	s._error_pages[400] = "standard-html/400.html";
 	s._error_pages[403] = "standard-html/403.html";
 	s._error_pages[404] = "standard-html/404.html";
+	s._error_pages[405] = "standard-html/405.html";
 	it++;
 	while (it != _tokens.end() && it->scope() > scope) {
 		if (it->type() == ConfigToken::ROOT) {

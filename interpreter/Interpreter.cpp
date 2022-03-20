@@ -87,7 +87,6 @@ Interpreter::Interpreter(const Request &request, Connection *connection) : _requ
 		LOG_BLUE("server-name: " << *it);
 		it++;
 	}
-	LOG_RED("Finding location...");
 	_findLocation(_server.getLocations());
 	if (_state == 1)
 		return ;
@@ -115,11 +114,6 @@ void	Interpreter::_findLocation(std::vector<location> const &l) {
 	std::vector<location>::const_iterator it = l.begin();
 	int		max = -1;
 	while (it != l.end()) {
-
-		std::cout << "Path: " << _request.getInterpreterInfo().abs_path << std::endl;
-		std::cout << "Query: " << _request.getInterpreterInfo().query << std::endl;
-		std::cout << "Frag: " << _request.getInterpreterInfo().fragment << std::endl;
-
 		const std::vector<std::string>	sp = split_string(it->_path, '/');
 		const std::vector<std::string>	&up = split_string(_request.getInterpreterInfo().abs_path, '/');
 		int c = count_continues_matches(sp, up);
@@ -168,7 +162,7 @@ void	Interpreter::_buildError(int error) {
 
 void	Interpreter::_checkMethods() {
 	if (_location._methods.find(_request.getMethod()) == _location._methods.end()) {
-		_buildError(403);
+		_buildError(405);
 	}
 }
 
@@ -176,6 +170,10 @@ int	Interpreter::send(const int &fd) {
 	return (_response.write_response(fd));
 }
 
+/**
+ * @brief 
+ * 
+ */
 void	Interpreter::_appendLocationToRoot() {
 	if (_location._root != "") {
 		_full_path = _location._root;
@@ -187,17 +185,18 @@ void	Interpreter::_appendLocationToRoot() {
 	if (_full_path.back() == '/') {
 		_full_path.pop_back();
 	}
-	_full_path += _location._path;
-	if (_full_path.back() == '/') {
-		_full_path.pop_back();
+	std::string	with_out_location;
+	if (_location._path.back() == '/')
+		with_out_location = _request.getInterpreterInfo().abs_path.substr(_location._path.length() - 1);
+	else {
+		with_out_location = _request.getInterpreterInfo().abs_path.substr(_location._path.length());
 	}
-	_full_path += _request.getInterpreterInfo().abs_path;
+	_full_path += with_out_location;
 }
 
 void	Interpreter::_findDirectory() {
 	struct stat s;
 	if (stat(_full_path.c_str(), &s) == 0) {
-		LOG_BLUE("Directory-> Full_path: " << _full_path);
 		std::vector<std::string>::const_iterator it = _location._index.begin();
 		while (it != _location._index.end())
 		{
@@ -231,15 +230,11 @@ void	Interpreter::_findDirectory() {
 void	Interpreter::_findFile() {
 	struct stat s;
 	if (stat(_full_path.c_str(), &s) == 0) {
-		LOG_RED("yop: " << _full_path);
 		if ( s.st_mode & S_IFREG) {
 			_build(200, _full_path);
-			LOG_GREEN("is file");
 		} else {
-			LOG_RED("Is not file");
 			_build(301, "standard-html/301.html");
 			_response.add_header("Location", _request.getInterpreterInfo().abs_path + "/");
-			LOG_GREEN("301!");
 		}
 	} else {
 		_buildError(404);
@@ -261,7 +256,6 @@ void	Interpreter::_build(int code, std::string const &_file) {
 	}
 	if (fp)
 	{
-		LOG_GREEN("wtf");
 		char buf[1024];
 		size_t	c_length = 0;
 		while (size_t len = fread(buf, 1, sizeof(buf), fp))
@@ -304,7 +298,3 @@ void	Interpreter::_buildStandard() {
 	else
 		_response.add_header("Connection", "close");
 }
-
-// void	Interpreter::_build301() {
-// 	_state = true;
-// }
