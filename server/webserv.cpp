@@ -117,7 +117,6 @@ void webserv::run()
 						this->_removeClient(itr);
 						continue;
 					}
-					LOG_GREEN("here" << (*itr)->getRequest().getContentLength());
 					LOG_GREEN("Read from client");
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))

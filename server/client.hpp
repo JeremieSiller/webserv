@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/03/19 18:02:06 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/21 00:09:20 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ class Client
 		clientstatus				_status;
 		Connection					*_connection;
 		Request 					_req;
+		std::vector<char>			_subBuffer;
 
 	public:
 
