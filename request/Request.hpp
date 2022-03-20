@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jhagedor <jhagedor@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/18 15:08:10 by jhagedor         ###   ########.fr       */
+/*   Updated: 2022/03/19 18:25:36 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,12 +213,15 @@ class Request
 	private:
 
 		int _parseHeader();
+		
+		std::vector<char> _parseChunked(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end);
 
 	public:
 	
 		Request();
 
 		void	setHeader(std::string const &header);
+		void	setStatus(headerstatus status) { this->_headerStatus = status; }
 		void	addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end);
 		
 		void	clear();

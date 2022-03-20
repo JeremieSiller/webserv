@@ -25,7 +25,7 @@ char EO_HEADER[] = {'\r', '\n', '\r', '\n'};
  * @param pattern the pattern to find
  * @return std::vector<char>::const_iterator the position of pattern in data (std::npos if not found);
  */
-std::vector<char>::const_iterator	find_pattern(const std::vector<char> &data, const std::vector<char> &pattern) {
+std::vector<char>::const_iterator	Client::find_pattern(const std::vector<char> &data, const std::vector<char> &pattern) {
 	return std::search(data.begin(), data.end(), pattern.begin(), pattern.end());
 }
 
@@ -38,15 +38,7 @@ Client::~Client()
 	close(this->_client_socket);
 }
 
-int strHexDec(std::string str)
-{
-	int bruh = 0;
-	for (int i = str.length() - 1; i >= 0; --i)
-	{
-		bruh += ((str[i] >= 'A' ? str[i] - 'A' + 10 : str[i] - '0') << (i - str.length() - 1) * 4);
-	}
-	return bruh;
-}
+
 
 int	Client::readRequest()
 {
@@ -55,6 +47,12 @@ int	Client::readRequest()
 	int					ret;
 
 	ret = recv(this->_client_socket, buf.begin().base(), MAX_RECV_SIZE, 0);
+	if (std::find(this->_req.getTransferEncoding().begin(), this->_req.getTransferEncoding().end(), "Chunked") != this->_req.getTransferEncoding().end())
+	{
+		_status = WRITING;
+		this->_req.setStatus(Request::INVALID);
+		return 1;
+	}
 	if (ret <= 0)
 		return (ret);
 	std::vector<char>::const_iterator it = buf.begin();
@@ -68,15 +66,13 @@ int	Client::readRequest()
 		std::vector<char>::const_iterator pos = find_pattern(buf, std::vector<char> (EO_HEADER, EO_HEADER + 4));
 		if (pos == (buf.begin() + ret)) {
 			LOG_RED("Not a valid HTTP header (in the first " << MAX_RECV_SIZE << " bytes");
-			_status = DIE; //is the same as WRITING! but writes 400 -> BAD request.
+			_status = WRITING; //is the same as WRITING! but writes 400 -> BAD request.
+			this->_req.setStatus(Request::INVALID);
 			return 1;
 		}
 		else {
 			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(buf.begin()), pos + 4));
 			this->_req.addBody(pos + 4, static_cast<std::vector<char>::const_iterator>((buf.begin() + ret)));
-			//parse here
-			//parser header (and body?) -> only thing checked till here is that we have '\r\n\r\n'
-			//for testing purpose we are setting status to WRITE but this can differ depending on the header.
 		}
 	}
 	else {
