@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/20 21:15:55 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/20 21:17:21 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void Request::setHeader(std::string const &header)
 	//this->_headerStatus = BODY;
 }
 
-int Request::_parseHeader()
+int Request::parseHeader()
 {
 	size_t pos = 0;
 	size_t begin = 0;
@@ -300,7 +300,7 @@ void Request::clear()
 	this->_transferEncoding = std::list<std::string>();
 	this->_connection = true;
 	this->_expect = false;
-	this->_contenttype = std::map<std::string, std::string>();
+	this->_contenttype ="";
 	this->_location = "";
 	this->_server = "";
 	this->_accept = std::list<std::string>();
