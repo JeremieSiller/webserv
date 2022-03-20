@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/19 19:50:44 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/20 19:53:31 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,8 +117,10 @@ int Request::_parseHeader()
 
 	if (this->_parsedHeader.count("Content-Type"))
 	{
+
+
 	}
-	
+
 	if (this->_parsedHeader.count("Location"))
 		this->_location = this->_parsedHeader["Location"];
 	
@@ -129,9 +131,10 @@ int Request::_parseHeader()
 
 int strHexDec(std::string str)
 {
-	std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){ return std::toupper(c); });
+	for (size_t i = 0; i < str.length(); ++i)
+		str[i] = std::toupper(str[i]);
 	int bruh = 0;
-	for (int i = 0; i < str.length(); ++i)
+	for (size_t i = 0; i < str.length(); ++i)
 		bruh += ((str[i] >= 'A') ? (str[i] - 'A' + 10) : (str[i] - '0')) * (1 << ((str.length() - 1 - i) * 4));
 	return bruh;
 }
@@ -174,8 +177,93 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 	}
 	return ret;
 }
+// POST / HTTP/1.1
+// Host: localhost:8000
+// User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:29.0) Gecko/20100101 Firefox/29.0
+// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+// Accept-Language: en-US,en;q=0.5
+// Accept-Encoding: gzip, deflate
+// Cookie: __atuvc=34%7C7; permanent=0; _gitlab_session=226ad8a0be43681acf38c2fab9497240; __profilin=p%3Dt; request_method=GET
+// Connection: keep-alive
+// Content-Type: multipart/form-data; boundary=---------------------------9051914041544843365972754266
+// Content-Length: 554
 
+// -----------------------------9051914041544843365972754266\r\n
+// Content-Disposition: form-data; name="text"\r\n
+// \r\n
+// text default
+// -----------------------------9051914041544843365972754266
+// Content-Disposition: form-data; name="file1"; filename="a.txt"
+// Content-Type: text/plain
 
+// Content of a.txt.
+
+// -----------------------------9051914041544843365972754266
+// Content-Disposition: form-data; name="file2"; filename="a.html"
+// Content-Type: text/html
+
+// <!DOCTYPE html><title>Content of a.html.</title>
+
+// -----------------------------9051914041544843365972754266--
+void Request::_fillboundary()
+{
+	std::vector<char>::const_iterator start = this->_body.begin();
+	std::vector<char>::const_iterator end = this->_body.end();
+	std::vector<char> pattern;
+	pattern.push_back('\r');
+	pattern.push_back('\n');
+	while (start != end)
+	{
+		std::vector<char>::const_iterator pos = std::search(start, end, this->_boundary.begin(), this->_boundary.end());
+		if (pos == end)
+		{
+			this->_headerStatus = INVALID;
+			return ;
+		}
+		
+		pos += this->_boundary.size() + 2; // skip \r\n
+		while (true)
+		{
+			// search for \r\n
+			std::vector<char>::const_iterator pos2 = std::search(pos, end, pattern.begin(), pattern.end());
+			if (pos2 == end)
+			{
+				this->_headerStatus = INVALID;
+				return ;
+			}
+			
+
+		}
+	}
+}
+
+void Request::_fillUrlEncode()
+{
+	std::vector<char>::const_iterator start = this->_body.begin();
+	std::vector<char>::const_iterator end = this->_body.end();
+	std::vector<char> pattern;
+	pattern.push_back('&');
+	std::vector<char> pattern2;
+	pattern2.push_back('=');
+	while (start != end)
+	{
+		std::vector<char>::const_iterator pos = std::search(start, end, pattern2.begin(), pattern2.end());
+		if (pos == end)
+		{
+			this->_headerStatus = INVALID;
+			return ;
+		}
+		std::string option = std::string(start, pos);
+		LOG_GREEN(option);
+		this->_url_encode.insert(std::pair<std::string, std::vector<char> >(option, std::vector<char>())); 
+		start = pos + 1; // skip =
+		pos = std::search(start, end, pattern.begin(), pattern.end());
+		this->_url_encode[option].insert(this->_url_encode[option].end(), start, pos);
+		if (pos == end)
+			return ;
+		start = pos + 1; // skip &
+	}
+}
 
 void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
@@ -190,6 +278,13 @@ void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>
 		if (this->_body.size() >= this->_contentLength)
 			this->_headerStatus = COMPLETE;
 	}
+	
+	// Content-Type is multipart boundary
+	// Everything is parsed into boundary thing
+	if (this->_headerStatus == COMPLETE && this->_boundary.size() > 1)
+		this->_fillboundary();
+	else if (this->_headerStatus == COMPLETE && this->_parsedHeader["Content-Type"] == "application/x-www-form-urlencoded")
+		this->_fillUrlEncode();
 }
 
 void Request::clear()
