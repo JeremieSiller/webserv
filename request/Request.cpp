@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/20 19:53:31 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/20 21:15:55 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,11 +20,8 @@ Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _m
 
 void Request::setHeader(std::string const &header)
 {
-	this->_header = header;
-	this->_headerStatus = BODY;
-	if (this->_parseHeader())
-		this->_headerStatus = INVALID;
-	prepareInterpreter();
+	this->_header += header;
+	//this->_headerStatus = BODY;
 }
 
 int Request::_parseHeader()
@@ -126,6 +123,8 @@ int Request::_parseHeader()
 	
 	if (this->_parsedHeader.count("Server"))
 		this->_server = this->_parsedHeader["Server"];
+
+	this->prepareInterpreter();
 	return 1;
 }
 
@@ -254,7 +253,6 @@ void Request::_fillUrlEncode()
 			return ;
 		}
 		std::string option = std::string(start, pos);
-		LOG_GREEN(option);
 		this->_url_encode.insert(std::pair<std::string, std::vector<char> >(option, std::vector<char>())); 
 		start = pos + 1; // skip =
 		pos = std::search(start, end, pattern.begin(), pattern.end());

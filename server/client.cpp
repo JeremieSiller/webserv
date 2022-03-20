@@ -64,10 +64,17 @@ int	Client::readRequest()
 	if (this->_req.getStatus() == Request::HEADER) {
 		LOG_YELLOW("Header_status = Header");
 		std::vector<char>::const_iterator pos = find_pattern(buf, std::vector<char> (EO_HEADER, EO_HEADER + 4));
-		if (pos == (buf.begin() + ret)) {
-			LOG_RED("Not a valid HTTP header (in the first " << MAX_RECV_SIZE << " bytes");
-			_status = WRITING; //is the same as WRITING! but writes 400 -> BAD request.
-			this->_req.setStatus(Request::INVALID);
+		if (pos != buf.end()) {
+			///LOG_RED("Not a valid HTTP header (in the first " << MAX_RECV_SIZE << " bytes");
+			//_status = WRITING; //is the same as WRITING! but writes 400 -> BAD request.
+			//this->_req.setStatus(Request::INVALID);
+			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(buf.begin()), pos + 4));
+			this->_req.addBody(pos + 4, static_cast<std::vector<char>::const_iterator>((buf.begin() + ret)));
+			if(!this->_req.parseHeader())
+			{
+				this->_status = WRITING;
+				this->_req.setStatus(Request::INVALID);
+			}
 			return 1;
 		}
 		else {

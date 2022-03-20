@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/20 19:46:24 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/20 21:13:36 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ class Request
 		bool		_expect;
 
 		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
-		std::map<std::string, std::string> _contenttype;
+		std::string _contenttype;
 
 		
 		std::string _location;
@@ -99,17 +99,19 @@ class Request
 
 	private:
 
-		int _parseHeader();
 		
 		std::vector<char> _parseChunked(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end);
 		
 		void	_fillboundary();
 		void	_fillUrlEncode();
+		int											prepareInterpreter();
 
 	public:
 	
 		Request();
 
+		int 	parseHeader();
+		
 		void	setHeader(std::string const &header);
 		void	setStatus(headerstatus status) { this->_headerStatus = status; }
 		void	addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end);
@@ -119,7 +121,7 @@ class Request
 		const headerstatus							&getStatus() const { return this->_headerStatus; }
 		const std::list<std::string>				&getAccept() const { return _accept; }
 		const std::string							&getServer() const { return _server; }
-		const std::map<std::string, std::string>	&getContentType() const {return _contenttype; }
+		const std::string							&getContentType() const {return _contenttype; }
 		const std::string							&getLocation() const { return _location; }
 		const std::vector<char>						&getBody() const { return _body; }
 		const std::map<std::string, std::string>	&getParsedHeader() const { return _parsedHeader; }
@@ -135,7 +137,6 @@ class Request
 		const bool									&getExpect() const { return _expect; }
 		const std::map<std::string, std::vector<char> > &getUrlEncode() const { return this->_url_encode; }
 
-		int											prepareInterpreter();
 		std::string 								uriDecode(std::string value);
 		const t_interpreter_info					&getInterpreterInfo() const { return _interpreter_info; }
 };
