@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <dirent.h>
+#include "cgi.hpp"
 
 std::string	buildDirectoryListing(std::string const &dir, std::string const &abs_path) {
 	std::string ret = "";
@@ -76,6 +77,10 @@ inline bool ends_with(std::string const & value, std::string const & ending)
 
 Interpreter::Interpreter(const Request &request, Connection *connection) : _request(request), _connection(connection) {
 	_state = 0;
+	if (_request.getStatus() == Request::INVALID) {
+		_buildError(400);
+		return ;
+	}
 	_findHostname();
 	std::vector<std::string>::const_iterator it = _server.getServerName().begin();
 	while (it != _server.getServerName().end()) {
@@ -245,9 +250,18 @@ void	Interpreter::_build(int code, std::string const &_file) {
 	_state = true;
 	_response = response(code);
 	_buildStandard();
+	FILE *fp;
 	std::vector<char> vec;
-	if (FILE *fp = fopen(_file.c_str(), "r"))
+	if (_location._cgi_extension != "") {
+		LOG_YELLOW("CGI");
+		cgi c(_request, _location, _file);
+		fp = c.getOutput();
+	} else {
+		fp = fopen(_file.c_str(), "r");
+	}
+	if (fp)
 	{
+		LOG_GREEN("wtf");
 		char buf[1024];
 		size_t	c_length = 0;
 		while (size_t len = fread(buf, 1, sizeof(buf), fp))
@@ -259,7 +273,7 @@ void	Interpreter::_build(int code, std::string const &_file) {
 		std::stringstream ss;
 		ss << c_length;
 		_response.add_header("Content-length", ss.str());
-		if (ends_with(_full_path, ".html")) {
+		if (ends_with(_full_path, ".html") || _location._cgi_extension != "") {
 			_response.add_header("Content-Type", "text/html");
 		} else {
 			_response.add_header("Content-Type", "media-type");
