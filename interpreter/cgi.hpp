@@ -7,16 +7,17 @@
 # include <map>
 # include "../request/Request.hpp"
 # include "../parsing/ConfigParser.hpp"
+# include <sstream>
 
 class cgi
 {
 private:
-	char			**_env;
-	FILE			*_input;
-	FILE			*_output;
+	std::map<std::string, std::string>	_env;
 	const Request	&_req;
 	location	&_loc;
 	std::string		_path;
+	FILE			*_input;
+	FILE			*_output;
 	void	_setEnv();
 	void	_runCgi();
 public:
@@ -25,6 +26,12 @@ public:
 	~cgi();
 };
 
+template<class T>
+std::string	to_string(const T &t) {
+	std::stringstream	ss;
+	ss << t;
+	return ss.str();
+}
 
 
 #endif
