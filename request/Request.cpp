@@ -121,6 +121,7 @@ int Request::parseHeader()
 
 int strHexDec(std::string str)
 {
+	LOG_RED("Chunked+sizeStr: " << str);
 	for (size_t i = 0; i < str.length(); ++i)
 		str[i] = std::toupper(str[i]);
 	int bruh = 0;
@@ -131,6 +132,7 @@ int strHexDec(std::string str)
 
 std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
+	static std::vector<char> rest;
 	static int skip = 0;
 	
 	std::vector<char> ret;
@@ -138,81 +140,70 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 	std::vector<char> pattern;
 	pattern.push_back('\r');
 	pattern.push_back('\n');
-	
-	if (std::distance(start, end) < skip)
-	{
-		start += std::distance(start, end);
-		skip -= std::distance(start, end);
-	}
-	else
-	{
-		start += skip;
-		skip = 0;
-	}
 
-	if (this->_chunksize != 0)
+	start += skip;
+	skip = 0;
+
+	if (this->_chunksize > 0)
 	{
-		if (std::distance(start, end) < this->_chunksize)
+		if (std::distance(start, end) < _chunksize)
 		{
-			this->_chunksize -= std::distance(start, end);
-			ret.insert(ret.begin(), start, end);
-			start = end;
+			_chunksize -= std::distance(start, end);
+			ret.insert(ret.end(), start, end);
+			return ret;
 		}
-		else
+		ret.insert(ret.end(), start, start + _chunksize);
+		start += _chunksize;
+		_chunksize = 0;
+		if (std::distance(start, end) < 2)
 		{
-			ret.insert(ret.begin(), start, start + this->_chunksize);
-			start += this->_chunksize;
-			this->_chunksize = 0;
-			skip = 2;
-			if (std::distance(start, end) < skip)
-			{
-				skip -= std::distance(start, end);
-				return ret;
-			}
-			else
-			{
-				skip = 0;
-				start += 2;
-			}
+			skip = 2 - std::distance(start, end);
+			return ret;
 		}
+		start += 2; // skip \r\n end of msg
 	}
 
 	while (start != end)
 	{
-		std::vector<char>::const_iterator pos = std::search(start, end, pattern.begin(), pattern.end());
-		if (pos == end)
+		std::vector<char>::const_iterator pos;
+		if (rest.size() > 0)
 		{
-			this->_headerStatus = INVALID;
-			return ret;
+			pos = std::search(start, end, pattern.begin(), pattern.end());
+			this->_chunksize = strHexDec(std::string(rest.begin(), rest.end()) + std::string(start, pos));
+			rest.clear();
+			start = pos + 2;
 		}
-		// should be : CHUNKSIZE\r\n -> pos is \r and is start is start of chunksize... e.g 3eg\r\n *start = 3 *pos = \r
-		this->_chunksize = strHexDec(std::string(start, pos));
+		else
+		{
+			pos = std::search(start, end, pattern.begin(), pattern.end());
+			if (pos == end)
+			{
+				rest.insert(rest.end(), start, end);
+				return ret;
+			}
+			this->_chunksize = strHexDec(std::string(start, pos));
+		}
 		this->_contentLength += _chunksize;
-		if (this->_chunksize == 0)
+		start = pos + 2; // skip \r\n
+		// end of it
+		if (_chunksize == 0)
 		{
 			this->_headerStatus = COMPLETE;
 			return ret;
 		}
-		else
+
+		while (start != end && _chunksize--)
 		{
-			// skip \r\n
-			start = pos + 2;
-			while (this->_chunksize--)
-			{
-				ret.push_back(*start);
-				start++;
-				if (start == end)
-					return ret;
-			}
-			// if at the end of message and cant skip anymore
-			if (std::distance(start , end) < 2)
-			{
-				skip = 2 - std::distance(start, end);
-				return ret;
-			}
-			else
-				start += 2; // \r\n
+			ret.push_back(*start);
+			start++;
 		}
+		// means we have one \r that means next read we will have one \r\n ffs
+		if (std::distance(start, end) < 2 && _chunksize <= 0)
+		{
+			skip = 2 - std::distance(start, end);
+			return ret;
+		}
+		start += 2;
 	}
 	return ret;
 }
@@ -221,6 +212,8 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 
 void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
+	LOG_RED(this->_header);
+	LOG_RED(this->_contentLength);
 	if (this->_parsedHeader["Transfer-Encoding"].find("chunked") != std::string::npos || this->_parsedHeader["Transfer-Encoding"] == "chunked")
 	{
 		std::vector<char> newbuf = this->_parseChunked(start, end);
@@ -228,6 +221,7 @@ void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>
 	}
 	else
 	{
+		LOG_RED("this would be stupidly wrong");
 		this->_body.insert(_body.end(), start, end);
 		if (this->_body.size() >= this->_contentLength)
 			this->_headerStatus = COMPLETE;
@@ -246,7 +240,7 @@ void Request::clear()
 	this->_chunksize = 0;
 	this->_host = "";
 	this->_contentLength = 0;
-	this->_transferEncoding ="";
+	this->_transferEncoding = "";
 	this->_connection = true;
 	this->_expect = false;
 	this->_contenttype ="";

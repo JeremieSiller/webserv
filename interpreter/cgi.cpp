@@ -51,6 +51,7 @@ void	cgi::_setEnv() {
 	_env["SCRIPT_NAME"] = _path;
 	_env["REQUEST_URI"] = _path;
 	_env["AUTH_TYPE"] = "";
+	_env["HTTP_X_SECRET_HEADER_FOR_TEST"] = "";
 }
 
 void	cgi::_runCgi() {
@@ -58,7 +59,7 @@ void	cgi::_runCgi() {
 	fdin = fileno(_input);
 	fdout = fileno(_output);
 	write(fdin, _req.getBody().begin().base(), _req.getBody().size());
-	write(1, _req.getBody().begin().base(), _req.getBody().size());
+	write(1, _req.getHeader().begin().base(), _req.getHeader().size());
 	lseek(fdin, 0, SEEK_SET);
 	int	pid = fork();
 	if (pid == -1) {
@@ -84,14 +85,13 @@ void	cgi::_runCgi() {
 			exit(99);
 		}
 	} else {
+		close(fdin);
 		int exit_status;
 		wait(&exit_status);
 		if (WIFEXITED(exit_status)) {
-			LOG_RED("Exit status: " << WEXITSTATUS(exit_status));
 			if (WEXITSTATUS(exit_status) == 99)
 				throw "internal server error";
 		}
-		fclose(_input);
 	}
 	lseek(fdout, 0, SEEK_SET);
 }

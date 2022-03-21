@@ -30,6 +30,7 @@ const std::string	ConfigToken::identity[] = {
 	"listen",
 	"cgi_extension",
 	"cgi_path",
+	"cgi_method",
 	"server_name",
 	"autoindex",
 	":",

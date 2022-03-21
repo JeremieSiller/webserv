@@ -67,7 +67,7 @@ class Server {
 			return false;
 		}
 
-		~Server() {};
+		~Server() {}
 		const std::vector<std::string>	&getServerName() const { return _server_name; }
 		const std::map<int, std::string> &getErrorPages() const { return _error_pages; }
 		const std::vector<location>		&getLocations() const { return _locations; }

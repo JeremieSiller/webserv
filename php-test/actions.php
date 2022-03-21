@@ -2,7 +2,12 @@
 <body>
 
 Welcome <?php echo $_POST["name"]; ?><br>
-Your email address is: <?php echo $_POST["email"];?>
+Your age is: <?php echo $_POST["age"];?>
 
+<?php  phpinfo(INFO_VARIABLES | INFO_ENVIRONMENT); ?>
 </body>
 </html>
+16547840
+14548992
+100000000
+10000000

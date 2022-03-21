@@ -60,7 +60,7 @@ void	webserv::_initSets()
 	for (std::vector<Client *>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 	{
 		if ((*itr)->getClientStatus() == Client::READING) {
-			LOG_BLUE("status: READING");
+			// LOG_BLUE("status: READING");
 			FD_SET((*itr)->getSocket(), &this->_readfds);
 		}
 		else if ((*itr)->getClientStatus() == Client::WRITING) {
@@ -110,14 +110,14 @@ void webserv::run()
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // we can read from client
 				{
-					LOG_BLUE("Reading socket");
+					// LOG_BLUE("Reading socket");
 					if ((*itr)->readRequest() <= 0) // if it returns 0 or -1 | close socket
 					{
 						LOG_RED("Recv rerturned <=0, removing client");
 						this->_removeClient(itr);
 						continue;
 					}
-					LOG_GREEN("Read from client");
+					// LOG_GREEN("Read from client");
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
 				{

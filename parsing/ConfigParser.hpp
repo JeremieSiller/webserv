@@ -29,7 +29,8 @@ typedef struct s_location {
 	std::string						_upload_path;
 	std::string						_cgi_extension;
 	std::string						_cgi_path;
-	char								_autoindex;
+	std::set<std::string>			_cgi_method;
+	char							_autoindex;
 }	location;
 
 typedef struct s_server {

@@ -19,6 +19,7 @@ INC =	interpreter/Interpreter.hpp	\
 		main.hpp					\
 		interpreter/Interpreter.hpp	\
 		interpreter/cgi.hpp			\
+		interpreter/utils.hpp		\
 
 SRC =	main.cpp					\
 		parsing/AToken.cpp			\
