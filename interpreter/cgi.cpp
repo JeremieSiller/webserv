@@ -59,7 +59,7 @@ void	cgi::_runCgi() {
 	fdin = fileno(_input);
 	fdout = fileno(_output);
 	write(fdin, _req.getBody().begin().base(), _req.getBody().size());
-	write(1, _req.getHeader().begin().base(), _req.getHeader().size());
+	std::vector<char>::const_iterator it = _req.getBody().begin();
 	lseek(fdin, 0, SEEK_SET);
 	int	pid = fork();
 	if (pid == -1) {

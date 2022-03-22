@@ -226,69 +226,77 @@ void	Interpreter::_build(int code, std::string const &_file) {
 			vec.insert(vec.end(), buf, buf + len);
 		}
 		fclose(fp);
-		// std::vector<char>::iterator pos = std::search(vec.begin(), vec.end(), eoh.begin(), eoh.end());
-		// if (pos != vec.end()) {
-		// 	pos += 4;
-		// 	std::string	header= "";
-		// 	std::string	value ="";
-		// 	bool state = 0;
-		// 	std::vector<char>::iterator it = vec.begin();
-		// 	while (it != pos)
-		// 	{
-		// 		if (*it == '\t' && state == 0)
-		// 			break;
-		// 		else if (*it == ':' && state == 0) {
-		// 			it+=2;
-		// 			state = 1;
-		// 			continue ;
-		// 		} else if (state == 1 && *it == '\r') {
-		// 			it += 2;
-		// 			state = 0;
-		// 			LOG_GREEN(header << " : " << value);
-		// 			_response.add_header(header, value);
-		// 			value.clear();
-		// 			header.clear();
-		// 			continue ;
-		// 		}
-		// 		if (state == 0) {
-		// 			header += *it;
-		// 		} else {
-		// 			value += *it;
-		// 		}
-		// 		it++;
-		// 	}
-		// 	vec.erase(vec.begin(), pos);
-		// }
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
-		// vec.push_back(0);
+		std::vector<char>::iterator pos = std::search(vec.begin(), vec.end(), eoh.begin(), eoh.end());
+		if (pos != vec.end()) {
+			pos += 4;
+			std::string	header= "";
+			std::string	value ="";
+			bool state = 0;
+			std::vector<char>::iterator it = vec.begin();
+			while (it != pos)
+			{
+				if (*it == '\t' && state == 0)
+					break;
+				else if (*it == ':' && state == 0) {
+					it+=2;
+					state = 1;
+					continue ;
+				} else if (state == 1 && *it == '\r') {
+					it += 2;
+					state = 0;
+					LOG_GREEN(header << " : " << value << "|");
+					_response.add_header(header, value);
+					value.clear();
+					header.clear();
+					continue ;
+				}
+				if (state == 0) {
+					header += *it;
+				} else {
+					value += *it;
+				}
+				it++;
+			}
+			vec.erase(vec.begin(), pos);
+		}
+		LOGN("Printing first 100 bytes of body");
+		for	(size_t i = 0; i < 100 && i < vec.size(); i++) {
+			if (vec[i] == 10 || vec[i] == 13) {
+				std::cout << ".";
+			} else {
+				std::cout << vec[i];
+			}
+			std::cout << " ";
+		}
+		std::cout << std::endl;
+		LOG_RED("Printing first 100 bytes of body as int");
+		for	(size_t i = 0; i < 100 && i < vec.size(); i++) {
+			std::cerr << (int)vec[i] << ' ';
+		}
+		std::cout << std::endl;
+		LOG_RED("------");
 		LOG_BLUE("vec-size: " << vec.size()); 
-		// std::vector<char>::iterator it = vec.begin();
-		// while (it != vec.end()) {
-		// 	std::cout << *it;
-		// 	it++;
-		// }
 		std::cout << std::endl;
 		std::stringstream ss;
 		ss << vec.size();
-		_response.add_header("Content-length", ss.str());
+		if (_request.getMethod() == "POST") {
+			_response.add_header("Content-length", "0");
+		} else {
+			_response.add_header("Content-length", ss.str());
+		}
 		// if (ends_with(_full_path, ".html") || _location._cgi_extension != "") {
 		// 	_response.add_header("Content-Type", "text/html");
 		// } else {
 		// 	_response.add_header("Content-Type", "media-type");
 		// }
-		_response.add_body(vec);
+		int fd = open("test.txt", O_WRONLY | O_TRUNC | O_CREAT);
+		if (fd == -1)
+			perror("open");
+		if (write(fd, vec.begin().base(), vec.size()) == -1)
+			perror("write");
+		close(fd);
+		if (_request.getMethod() == "GET")
+			_response.add_body(vec);
 	} else
 	{
 		_buildError(403);
