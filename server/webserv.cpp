@@ -60,12 +60,12 @@ void	webserv::_initSets()
 	for (std::vector<Client *>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 	{
 		if ((*itr)->getClientStatus() == Client::READING) {
-			LOG_BLUE("status: READING");
+			//LOG_BLUE("status: READING");
 			FD_SET((*itr)->getSocket(), &this->_readfds);
 		}
 		else if ((*itr)->getClientStatus() == Client::WRITING) {
 			FD_SET((*itr)->getSocket(), &this->_writefds);
-			LOG_BLUE("status: WRITING");
+			//LOG_BLUE("status: WRITING");
 		}
 		if ((*itr)->getSocket() > this->_maxfds)
 			this->_maxfds = (*itr)->getSocket();
@@ -110,27 +110,27 @@ void webserv::run()
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // we can read from client
 				{
-					LOG_BLUE("Reading socket");
+					//LOG_BLUE("Reading socket");
 					if ((*itr)->readRequest() <= 0) // if it returns 0 or -1 | close socket
 					{
 						LOG_RED("Recv rerturned <=0, removing client");
 						this->_removeClient(itr);
 						continue;
 					}
-					LOG_GREEN("Read from client");
+					//LOG_GREEN("Read from client");
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
 				{
 					// parse then send response
 					// dont forget to clear vector in client !!
 					// either client status is DIE or WRITE which is the same
-					LOG_BLUE("Writing to socket");
+					LOG_BLUE("Writing to socket; size: " << (*itr)->getRequest().getBody().size());
 					(*itr)->setClientStatus(Client::READING);
 					if (!(*itr)->sendResponse())
 					{
 						this->_removeClient(itr);
 					}
-					LOG_GREEN("Send repsonse to client");
+					//LOG_GREEN("Send repsonse to client");
 					
 				}
 			}

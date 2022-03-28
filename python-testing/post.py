@@ -1,16 +1,11 @@
 import requests as r
 
-header = 
-{
-	'Host: localhost:8070',
-	'Accept: */*',
-	'Transfer-Encoding: Chunked',
-}
 data = {
-	'1\r\naE\r\nHelloWorld!\nfd0\r\n\r\n'
+	'abc':'yeet',
+	'delta':'yefb'
 }
-url = "http://localhost:8070/"
-response = r.post(url=url, data=data, header=header)
+url = "http://localhost:5000/"
+response = r.post(url=url, data=data)
 print("status code:", response.status_code)
 print("text:", response.text)
 print("json:", response.json())

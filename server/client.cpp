@@ -43,44 +43,36 @@ Client::~Client()
 int	Client::readRequest()
 {
 	std::vector<char>	buf(MAX_RECV_SIZE);
-	// char	buffer[MAX_RECV_SIZE] = {0};
 	int					ret;
 
 	ret = recv(this->_client_socket, buf.begin().base(), MAX_RECV_SIZE, 0);
-	if (std::find(this->_req.getTransferEncoding().begin(), this->_req.getTransferEncoding().end(), "Chunked") != this->_req.getTransferEncoding().end())
-	{
-		_status = WRITING;
-		this->_req.setStatus(Request::INVALID);
-		return 1;
-	}
 	if (ret <= 0)
 		return (ret);
-	std::vector<char>::const_iterator it = buf.begin();
-	while (it != (buf.begin() + ret)) {
-		std::cout << (*it);
-	 	it++;
-	}
-	std::cout << std::endl;
+
 	if (this->_req.getStatus() == Request::HEADER) {
-		LOG_YELLOW("Header_status = Header");
-		std::vector<char>::const_iterator pos = find_pattern(buf, std::vector<char> (EO_HEADER, EO_HEADER + 4));
-		if (pos == (buf.begin() + ret)) {
-			LOG_RED("Not a valid HTTP header (in the first " << MAX_RECV_SIZE << " bytes");
-			_status = WRITING; //is the same as WRITING! but writes 400 -> BAD request.
-			this->_req.setStatus(Request::INVALID);
-			return 1;
-		}
-		else {
-			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(buf.begin()), pos + 4));
-			this->_req.addBody(pos + 4, static_cast<std::vector<char>::const_iterator>((buf.begin() + ret)));
+		this->_subBuffer.insert(this->_subBuffer.end(), buf.begin(), buf.begin() + ret);
+		std::vector<char>::const_iterator pos = find_pattern(_subBuffer, std::vector<char> (EO_HEADER, EO_HEADER + 4));
+		if (pos != this->_subBuffer.end())
+		{
+			LOG_YELLOW("Still in Header");
+			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(_subBuffer.begin()), pos + 4));
+			if (this->_req.getStatus() == Request::INVALID) {
+				LOG_RED("Invalid request!");
+				this->_status = WRITING;
+			}
+			LOG_RED(this->_req.getHeader());
+			this->_req.addBody(pos + 4, static_cast<std::vector<char>::const_iterator>((_subBuffer.end())));
+			this->_subBuffer.clear();
 		}
 	}
 	else {
-		LOG_YELLOW("Header_status = Body");
 		this->_req.addBody(buf.begin(), static_cast<std::vector<char>::const_iterator>((buf.begin() + ret)));
 	}
-	if (this->_req.getStatus() == Request::COMPLETE)
-		_status = WRITING;
+
+	if (this->_req.getStatus() == Request::COMPLETE) {
+		LOG_BLUE("Request complete!");
+		this->_status = WRITING;
+	}
 	return 1;
 }
 
@@ -89,10 +81,13 @@ int Client::sendResponse()
 	this->_status = READING;
 	Interpreter i(this->_req, this->_connection);
 	if (i.send(this->_client_socket) == -1) {
+		this->_req.clear();
 		LOG_RED("Could not write to socket");
 		return 0;
 	}
+	LOG_BLUE("Client sent Resposne");
 	if (_req.getConnection() == false) {
+		this->_req.clear();
 		LOG_BLUE("Client wished to close the connection\n");
 		return 0;
 	}

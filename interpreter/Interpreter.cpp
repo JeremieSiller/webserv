@@ -8,72 +8,8 @@
 #include <fstream>
 #include <dirent.h>
 #include "cgi.hpp"
-
-std::string	buildDirectoryListing(std::string const &dir, std::string const &abs_path) {
-	std::string ret = "";
-	ret += "<html>\n";
-	ret += "<head><title>Index of "+ abs_path + "</title></head>\n";
-	ret += "<body>\n";
-	ret += "<h1>Index of " + abs_path + "</h1><hr><pre><a href=\"../\">../</a>\n";
-	DIR *d;
-	struct dirent *dd;
-	d = opendir(dir.c_str());
-	if (d) {
-		while ((dd = readdir(d)) != NULL)
-		{
-			if (dd->d_name[0] != '.') {
-				ret += "<a href=\"" + abs_path + dd->d_name;
-				if (dd->d_type == DT_DIR)
-					ret += "/";
-				ret += "\">" + std::string(dd->d_name);
-				if (dd->d_type == DT_DIR)
-					ret += "/";
-				ret += "</a>\n";
-			}
-		}
-	}
-	else {
-		return "";
-	}
-	ret += "</body>\n";
-	ret += "</html>";
-	return ret;
-}
-
-std::vector<std::string>	split_string(const std::string &s, const char &c) {
-	std::stringstream ss;
-	std::string	segment;
-
-	ss << s;
-	std::vector<std::string> seglist;
-	while  (std::getline(ss, segment, c)) {
-		if (segment != "")
-			seglist.push_back(segment);
-	}
-	return seglist;
-}
-
-int		count_continues_matches(const std::vector<std::string> &path, const std::vector<std::string> &uri) {
-	std::vector<std::string>::const_iterator	pit = path.begin();
-	std::vector<std::string>::const_iterator	uit = uri.begin();
-	size_t	count = 0;
-	while (pit != path.end() && uit != uri.end()) {
-		if (*pit != *uit)
-			break;
-		pit++;
-		uit++;
-		count++;
-	}
-	if (pit == path.begin() && path.empty() == false)
-		return -1;
-	return count;
-}
-
-inline bool ends_with(std::string const & value, std::string const & ending)
-{
-	if (ending.size() > value.size()) return false;
-	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
-}
+#include <fcntl.h>
+#include "utils.hpp"
 
 Interpreter::Interpreter(const Request &request, Connection *connection) : _request(request), _connection(connection) {
 	_state = 0;
@@ -167,6 +103,7 @@ void	Interpreter::_checkMethods() {
 }
 
 int	Interpreter::send(const int &fd) {
+
 	return (_response.write_response(fd));
 }
 
@@ -220,7 +157,7 @@ void	Interpreter::_findDirectory() {
 				_buildError(404);
 			}
 		} else {
-			_buildError(403);
+			_buildError(404);
 		}
 	} else {
 		_buildError(404);
@@ -231,12 +168,32 @@ void	Interpreter::_findFile() {
 	struct stat s;
 	if (stat(_full_path.c_str(), &s) == 0) {
 		if ( s.st_mode & S_IFREG) {
+			if (_request.getMethod() == "PUT") {
+				LOG_YELLOW("file already exists");
+				FILE  *fp = fopen(_full_path.c_str(), "w");
+				if (fp) {
+					fwrite(_request.getBody().begin().base(), 1, _request.getBody().size(), fp);
+					fclose(fp);
+					_buildText(204, "");
+					return ;
+				}
+			}
 			_build(200, _full_path);
 		} else {
 			_build(301, "standard-html/301.html");
 			_response.add_header("Location", _request.getInterpreterInfo().abs_path + "/");
 		}
 	} else {
+		if (_request.getMethod() == "PUT") {
+			FILE *fp = fopen(_full_path.c_str(), "w");
+			if (fp) {
+				fwrite(_request.getBody().begin().base(), 1, _request.getBody().size(), fp);
+				_buildText(201, "");
+				fclose(fp);
+				return ;
+			}
+		}
+
 		_buildError(404);
 	}
 }
@@ -247,8 +204,10 @@ void	Interpreter::_build(int code, std::string const &_file) {
 	_buildStandard();
 	FILE *fp;
 	std::vector<char> vec;
-	if (_location._cgi_extension != "") {
+	if (ends_with(_request.getInterpreterInfo().abs_path, _location._cgi_extension) && 
+		_location._cgi_method.find(_request.getMethod()) != _location._cgi_method.end()) {
 		LOG_YELLOW("CGI");
+		LOG_GREEN("body-size: " << _request.getBody().size());
 		cgi c(_request, _location, _file);
 		fp = c.getOutput();
 	} else {
@@ -256,23 +215,88 @@ void	Interpreter::_build(int code, std::string const &_file) {
 	}
 	if (fp)
 	{
+		std::vector<char> eoh;
+		eoh.push_back('\r');
+		eoh.push_back('\n');
+		eoh.push_back('\r');
+		eoh.push_back('\n');
 		char buf[1024];
-		size_t	c_length = 0;
 		while (size_t len = fread(buf, 1, sizeof(buf), fp))
 		{
 			vec.insert(vec.end(), buf, buf + len);
-			c_length += len;
 		}
 		fclose(fp);
-		std::stringstream ss;
-		ss << c_length;
-		_response.add_header("Content-length", ss.str());
-		if (ends_with(_full_path, ".html") || _location._cgi_extension != "") {
-			_response.add_header("Content-Type", "text/html");
-		} else {
-			_response.add_header("Content-Type", "media-type");
+		std::vector<char>::iterator pos = std::search(vec.begin(), vec.end(), eoh.begin(), eoh.end());
+		if (pos != vec.end()) {
+			pos += 4;
+			std::string	header= "";
+			std::string	value ="";
+			bool state = 0;
+			std::vector<char>::iterator it = vec.begin();
+			while (it != pos)
+			{
+				if (*it == '\t' && state == 0)
+					break;
+				else if (*it == ':' && state == 0) {
+					it+=2;
+					state = 1;
+					continue ;
+				} else if (state == 1 && *it == '\r') {
+					it += 2;
+					state = 0;
+					LOG_GREEN(header << " : " << value << "|");
+					_response.add_header(header, value);
+					value.clear();
+					header.clear();
+					continue ;
+				}
+				if (state == 0) {
+					header += *it;
+				} else {
+					value += *it;
+				}
+				it++;
+			}
+			vec.erase(vec.begin(), pos);
 		}
-		_response.add_body(vec);
+		LOGN("Printing first 100 bytes of body");
+		for	(size_t i = 0; i < 100 && i < vec.size(); i++) {
+			if (vec[i] == 10 || vec[i] == 13) {
+				std::cout << ".";
+			} else {
+				std::cout << vec[i];
+			}
+			std::cout << " ";
+		}
+		std::cout << std::endl;
+		LOG_RED("Printing first 100 bytes of body as int");
+		for	(size_t i = 0; i < 100 && i < vec.size(); i++) {
+			std::cerr << (int)vec[i] << ' ';
+		}
+		std::cout << std::endl;
+		LOG_RED("------");
+		LOG_BLUE("vec-size: " << vec.size()); 
+		std::cout << std::endl;
+		std::stringstream ss;
+		ss << vec.size();
+		if (_request.getMethod() == "POST") {
+			_response.add_header("Content-length", "0");
+		} else {
+			_response.add_header("Content-length", ss.str());
+		}
+		// if (ends_with(_full_path, ".html") || _location._cgi_extension != "") {
+		// 	_response.add_header("Content-Type", "text/html");
+		// } else {
+		// 	_response.add_header("Content-Type", "media-type");
+		// }
+		int fd = open("test.txt", O_WRONLY | O_TRUNC | O_CREAT);
+		if (fd == -1)
+			perror("open");
+		if (write(fd, vec.begin().base(), vec.size()) == -1)
+			perror("write");
+		close(fd);
+		if (_request.getMethod() == "GET")
+			_response.add_body(vec);
 	} else
 	{
 		_buildError(403);

@@ -1,0 +1,40 @@
+
+.c-startbtn
+{
+	font-size: x-large;
+	margin: auto;
+}
+
+.c-gameSection
+{
+	position: absolute;
+	top: calc(50% - 360px);
+	right: calc(50% - 640px);
+	width: 1280px;
+	height: 720px;
+	background-color: lightslategray;
+	display: grid;
+
+	border: 5px;
+	border-style: solid;
+	border-color: black;
+	z-index: 0;
+}
+
+.c-gameSnack
+{
+	position: absolute;
+	height: 20px;
+	width: 20px;
+	background-color: red;
+	z-index: 1;
+}
+
+.c-gameSnakeBody
+{
+	position: absolute;
+	height: 20px;
+	width: 20px;
+	background-color: green;
+	z-index: 2;
+}

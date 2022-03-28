@@ -112,14 +112,31 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 			if (it->type() == ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", method need atleast one arguement");
 			}
-			while (it->type() != ConfigToken::EOF_INSTRUCT && (it->type() == ConfigToken::POST || it->type() == ConfigToken::DELTE || it->type() == ConfigToken::GET)) {
+			while (it->type() != ConfigToken::EOF_INSTRUCT && (it->type() == ConfigToken::POST || it->type() == ConfigToken::DELTE || it->type() == ConfigToken::GET || it->type() == ConfigToken::PUT || it->type() == ConfigToken::HEAD)) { //TODO
 				if (l._methods.insert(it->content()).second == false) {
 					throw unexpectedToken(it->content(), ", specific method can not be set twice");
 				}
 				it++;
 			}
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
-				throw unexpectedToken(it->content(), ", method indetifier has to be method, expected \";\"");
+				throw unexpectedToken(it->content(), ", method identifier has to be method, expected \";\"");
+			}
+		} else if (it->type() == ConfigToken::CGI_METHOD) {
+			if (!l._cgi_method.empty()) {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", cgi_method need atleast one arguement");
+			}
+			while (it->type() != ConfigToken::EOF_INSTRUCT && (it->type() == ConfigToken::POST || it->type() == ConfigToken::DELTE || it->type() == ConfigToken::GET || it->type() == ConfigToken::PUT || it->type() == ConfigToken::HEAD)) { //TODO
+				if (l._cgi_method.insert(it->content()).second == false) {
+					throw unexpectedToken(it->content(), ", specific method can not be set twice");
+				}
+				it++;
+			}
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", cgi_method identifier has to be method, expected \";\"");
 			}
 		} else if (it->type() == ConfigToken::UPLOAD_ENABLE) {
 			if (l._upload != -1) {

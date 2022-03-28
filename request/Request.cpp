@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/19 19:06:57 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/28 19:06:35 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,18 +16,19 @@
 #include <sstream>
 #include "../server/client.hpp"
 
-Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _method(), _headerStatus(HEADER), _chunksize() , _host(), _contentLength(), _transferEncoding(), _connection(true), _expect(false), _contenttype(), _location(), _server(), _accept() {}
+
+
+Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _method(), _headerStatus(HEADER), _chunksize() , _host(), _contentLength(), _transferEncoding(), _connection(true), _expect(false), _contenttype(), _location(), _server(), _accept() {this->_crlfvec = std::vector<char>(CRLF, CRLF + 2);}
 
 void Request::setHeader(std::string const &header)
 {
-	this->_header = header;
+	this->_header += header;
 	this->_headerStatus = BODY;
-	if (this->_parseHeader())
+	if(!this->parseHeader())
 		this->_headerStatus = INVALID;
-	prepareInterpreter();
 }
 
-int Request::_parseHeader()
+int Request::parseHeader()
 {
 	size_t pos = 0;
 	size_t begin = 0;
@@ -100,12 +101,7 @@ int Request::_parseHeader()
 		this->_headerStatus = INVALID;
 
 	if (this->_parsedHeader.count("Transfer-Encoding"))
-	{
-		std::istringstream istream(std::string(this->_parsedHeader["Transfer-Encoding"])); 
-		std::string buf;
-		while (std::getline(istream, buf, ','))
-			this->_transferEncoding.push_back(buf);
-	}
+		this->_transferEncoding = this->_parsedHeader["Transfer-Encoding"];
 	else if (this->_parsedHeader.count("Content-Length"))
 		this->_contentLength = ::atoi(this->_parsedHeader["Content-Length"].c_str());
 	
@@ -115,76 +111,97 @@ int Request::_parseHeader()
 	if (this->_parsedHeader.count("Expect") && this->_parsedHeader["Expect"] == "100-continue")
 		this->_expect = true;
 
-	if (this->_parsedHeader.count("Content-Type"))
-	{
-	}
-	
 	if (this->_parsedHeader.count("Location"))
 		this->_location = this->_parsedHeader["Location"];
 	
 	if (this->_parsedHeader.count("Server"))
 		this->_server = this->_parsedHeader["Server"];
+
+	this->prepareInterpreter();
 	return 1;
 }
 
 int strHexDec(std::string str)
 {
+	std::cout << "size: 0x" << str;
+	for (size_t i = 0; i < str.length(); ++i)
+		str[i] = std::toupper(str[i]);
 	int bruh = 0;
-	for (int i = str.length() - 1; i >= 0; --i)
+	for (size_t i = 0; i < str.length(); ++i)
 		bruh += ((str[i] >= 'A') ? (str[i] - 'A' + 10) : (str[i] - '0')) * (1 << ((str.length() - 1 - i) * 4));
+	std::cout << " : " << bruh << std::endl;
 	return bruh;
 }
 
 std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
-	std::vector<char> ret;
-	if (this->_chunksize != 0)
-		ret.insert(ret.begin(), start, start + this->_chunksize);
-	start += this->_chunksize;
-	this->_chunksize = 0;
-	std::vector<char> pattern;
-	pattern.push_back('\r');
-	pattern.push_back('\n');
+	static std::vector<char>	rest;
+	std::vector<char>			ret;
+	std::vector<char>::const_iterator search;
+	std::vector<char>			copy;
+	
+	copy.reserve(8000);
+	if (rest.size() > 0)
+		copy.insert(copy.end(), rest.begin(), rest.end());
+	copy.insert(copy.end(), start, end);
+	rest.clear();
+
+	start = copy.begin();
+	end = copy.end();
+	
 	while (start != end)
 	{
-		std::vector<char>::const_iterator pos = std::search(start, end, pattern.begin(), pattern.end());
-		if (pos == end)
+		while (this->_chunksize > 0)
 		{
-			this->_headerStatus = INVALID;
+			ret.push_back(*(start++));
+			this->_chunksize--;
+			if (start == end)
+				return ret;
+		}
+
+		search = std::search(start, end, this->_crlfvec.begin(), this->_crlfvec.end());
+		// incomplete \r\n 
+		if (search == end)
+		{
+			rest.insert(rest.end(), start, end);
 			return ret;
 		}
-		this->_chunksize = strHexDec(std::string(start, pos));
-		this->_contentLength += _chunksize;
+		// we caught first \r\n not complete shit
+		if (!isdigit(*start))
+		{
+			start += 2;
+			search = std::search(start, end, this->_crlfvec.begin(), this->_crlfvec.end());
+			if (search == end)
+			{
+				rest.insert(rest.end(), start, end);
+				return ret;
+			}
+		}
+		// now between start and search there is the number...
+		this->_chunksize = strHexDec(std::string(start, search));
+		this->_contentLength += this->_chunksize;
 		if (this->_chunksize == 0)
 		{
 			this->_headerStatus = COMPLETE;
 			return ret;
 		}
-		else
-		{
-			// skip \r\n
-			start = pos + 2;
-			while (this->_chunksize--)
-			{
-				ret.push_back(*start);
-				start++;
-			}
-		}
+		start = search + 2;
 	}
 	return ret;
 }
 
-
-
 void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
-	if (std::find(this->_transferEncoding.begin(), this->_transferEncoding.end(), "chunked") != this->_transferEncoding.end())
+	LOG_RED(this->_header);
+	LOG_RED(this->_contentLength);
+	if (this->_parsedHeader["Transfer-Encoding"].find("chunked") != std::string::npos || this->_parsedHeader["Transfer-Encoding"] == "chunked")
 	{
 		std::vector<char> newbuf = this->_parseChunked(start, end);
 		this->_body.insert(_body.end(), newbuf.begin(), newbuf.end());
 	}
 	else
 	{
+		LOG_RED("this would be stupidly wrong");
 		this->_body.insert(_body.end(), start, end);
 		if (this->_body.size() >= this->_contentLength)
 			this->_headerStatus = COMPLETE;
@@ -194,7 +211,7 @@ void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>
 void Request::clear()
 {
 	this->_header = "";
-	this->_body = std::vector<char>();
+	this->_body.clear();
 	this->_parsedHeader = std::map<std::string, std::string>();
 	this->_version = "";
 	this->_path = "";
@@ -203,10 +220,10 @@ void Request::clear()
 	this->_chunksize = 0;
 	this->_host = "";
 	this->_contentLength = 0;
-	this->_transferEncoding = std::list<std::string>();
+	this->_transferEncoding = "";
 	this->_connection = true;
 	this->_expect = false;
-	this->_contenttype = std::map<std::string, std::string>();
+	this->_contenttype ="";
 	this->_location = "";
 	this->_server = "";
 	this->_accept = std::list<std::string>();
