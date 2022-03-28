@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/28 19:06:35 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/28 19:12:33 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,8 +192,6 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 
 void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
-	LOG_RED(this->_header);
-	LOG_RED(this->_contentLength);
 	if (this->_parsedHeader["Transfer-Encoding"].find("chunked") != std::string::npos || this->_parsedHeader["Transfer-Encoding"] == "chunked")
 	{
 		std::vector<char> newbuf = this->_parseChunked(start, end);

@@ -85,7 +85,7 @@ int Client::sendResponse()
 		LOG_RED("Could not write to socket");
 		return 0;
 	}
-	LOG_BLUE("Client sent Resposne");
+	LOG_BLUE("Client sent Response");
 	if (_req.getConnection() == false) {
 		this->_req.clear();
 		LOG_BLUE("Client wished to close the connection\n");
