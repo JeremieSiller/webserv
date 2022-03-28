@@ -59,6 +59,7 @@ int	Client::readRequest()
 			if (this->_req.getStatus() == Request::INVALID) {
 				LOG_RED("Invalid request!");
 				this->_status = WRITING;
+			}
 			LOG_RED(this->_req.getHeader());
 			this->_req.addBody(pos + 4, static_cast<std::vector<char>::const_iterator>((_subBuffer.end())));
 			this->_subBuffer.clear();
@@ -84,7 +85,7 @@ int Client::sendResponse()
 		LOG_RED("Could not write to socket");
 		return 0;
 	}
-		LOG_BLUE("Client sent Resposne");
+	LOG_BLUE("Client sent Resposne");
 	if (_req.getConnection() == false) {
 		this->_req.clear();
 		LOG_BLUE("Client wished to close the connection\n");

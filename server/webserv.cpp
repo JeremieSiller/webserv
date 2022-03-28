@@ -60,11 +60,7 @@ void	webserv::_initSets()
 	for (std::vector<Client *>::iterator itr = this->_clients.begin(); itr != this->_clients.end(); itr++)
 	{
 		if ((*itr)->getClientStatus() == Client::READING) {
-<<<<<<< HEAD
 			//LOG_BLUE("status: READING");
-=======
-			// LOG_BLUE("status: READING");
->>>>>>> 46fe333e5205fd99db4c8c6aa828fa57341eaa13
 			FD_SET((*itr)->getSocket(), &this->_readfds);
 		}
 		else if ((*itr)->getClientStatus() == Client::WRITING) {
