@@ -36,7 +36,7 @@ public:
 /* public member functions */
 	Lexer(std::stringstream const &stream);
 	Lexer(std::string const &_path = DEFAULT_PATH);
-	~Lexer() { };
+	~Lexer() { }
 	std::vector<Token> &getToken();
 };
 

@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/28 19:01:55 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/28 19:03:38 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,13 +185,31 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 			this->_headerStatus = COMPLETE;
 			return ret;
 		}
+<<<<<<< HEAD
 		start = search + 2;
+=======
+
+		while (start != end && _chunksize--)
+		{
+			ret.push_back(*start);
+			start++;
+		}
+		// means we have one \r that means next read we will have one \r\n ffs
+		if (std::distance(start, end) < 2 && _chunksize <= 0)
+		{
+			skip = 2 - std::distance(start, end);
+			return ret;
+		}
+		start += 2;
+>>>>>>> 46fe333e5205fd99db4c8c6aa828fa57341eaa13
 	}
 	return ret;
 }
 
 void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
+	LOG_RED(this->_header);
+	LOG_RED(this->_contentLength);
 	if (this->_parsedHeader["Transfer-Encoding"].find("chunked") != std::string::npos || this->_parsedHeader["Transfer-Encoding"] == "chunked")
 	{
 		std::vector<char> newbuf = this->_parseChunked(start, end);
@@ -199,6 +217,7 @@ void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>
 	}
 	else
 	{
+		LOG_RED("this would be stupidly wrong");
 		this->_body.insert(_body.end(), start, end);
 		if (this->_body.size() >= this->_contentLength)
 			this->_headerStatus = COMPLETE;
@@ -217,7 +236,7 @@ void Request::clear()
 	this->_chunksize = 0;
 	this->_host = "";
 	this->_contentLength = 0;
-	this->_transferEncoding ="";
+	this->_transferEncoding = "";
 	this->_connection = true;
 	this->_expect = false;
 	this->_contenttype ="";

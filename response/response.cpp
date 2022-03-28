@@ -1,4 +1,5 @@
 #include "response.hpp"
+#include <iostream>
 
 /**
  * @brief get the reason message according to a status code
@@ -164,6 +165,8 @@ response::~response() { }
  */
 int	response::write_response(const int &fd) {
 	_pushEndOfLine();
+	// write(1, _header.begin().base(), _header.size());
+	LOG_RED("body: " << _body.size());
 	_header.insert(_header.end(), _body.begin(), _body.end());
 	return (write(fd, _header.begin().base(), _header.size()));
 
