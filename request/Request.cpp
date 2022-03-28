@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/21 00:08:42 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/28 19:01:55 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,9 @@
 #include <sstream>
 #include "../server/client.hpp"
 
-Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _method(), _headerStatus(HEADER), _chunksize() , _host(), _contentLength(), _transferEncoding(), _connection(true), _expect(false), _contenttype(), _location(), _server(), _accept() {}
+
+
+Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _method(), _headerStatus(HEADER), _chunksize() , _host(), _contentLength(), _transferEncoding(), _connection(true), _expect(false), _contenttype(), _location(), _server(), _accept() {this->_crlfvec = std::vector<char>(CRLF, CRLF + 2);}
 
 void Request::setHeader(std::string const &header)
 {
@@ -121,103 +123,72 @@ int Request::parseHeader()
 
 int strHexDec(std::string str)
 {
+	std::cout << "size: 0x" << str;
 	for (size_t i = 0; i < str.length(); ++i)
 		str[i] = std::toupper(str[i]);
 	int bruh = 0;
 	for (size_t i = 0; i < str.length(); ++i)
 		bruh += ((str[i] >= 'A') ? (str[i] - 'A' + 10) : (str[i] - '0')) * (1 << ((str.length() - 1 - i) * 4));
+	std::cout << " : " << bruh << std::endl;
 	return bruh;
 }
 
 std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
-	static int skip = 0;
+	static std::vector<char>	rest;
+	std::vector<char>			ret;
+	std::vector<char>::const_iterator search;
+	std::vector<char>			copy;
 	
-	std::vector<char> ret;
-	
-	std::vector<char> pattern;
-	pattern.push_back('\r');
-	pattern.push_back('\n');
-	
-	if (std::distance(start, end) < skip)
-	{
-		start += std::distance(start, end);
-		skip -= std::distance(start, end);
-	}
-	else
-	{
-		start += skip;
-		skip = 0;
-	}
+	copy.reserve(8000);
+	if (rest.size() > 0)
+		copy.insert(copy.end(), rest.begin(), rest.end());
+	copy.insert(copy.end(), start, end);
+	rest.clear();
 
-	if (this->_chunksize != 0)
-	{
-		if (std::distance(start, end) < this->_chunksize)
-		{
-			this->_chunksize -= std::distance(start, end);
-			ret.insert(ret.begin(), start, end);
-			start = end;
-		}
-		else
-		{
-			ret.insert(ret.begin(), start, start + this->_chunksize);
-			start += this->_chunksize;
-			this->_chunksize = 0;
-			skip = 2;
-			if (std::distance(start, end) < skip)
-			{
-				skip -= std::distance(start, end);
-				return ret;
-			}
-			else
-			{
-				skip = 0;
-				start += 2;
-			}
-		}
-	}
-
+	start = copy.begin();
+	end = copy.end();
+	
 	while (start != end)
 	{
-		std::vector<char>::const_iterator pos = std::search(start, end, pattern.begin(), pattern.end());
-		if (pos == end)
+		while (this->_chunksize > 0)
 		{
-			this->_headerStatus = INVALID;
+			ret.push_back(*(start++));
+			this->_chunksize--;
+			if (start == end)
+				return ret;
+		}
+
+		search = std::search(start, end, this->_crlfvec.begin(), this->_crlfvec.end());
+		// incomplete \r\n 
+		if (search == end)
+		{
+			rest.insert(rest.end(), start, end);
 			return ret;
 		}
-		// should be : CHUNKSIZE\r\n -> pos is \r and is start is start of chunksize... e.g 3eg\r\n *start = 3 *pos = \r
-		this->_chunksize = strHexDec(std::string(start, pos));
-		this->_contentLength += _chunksize;
+		// we caught first \r\n not complete shit
+		if (!isdigit(*start))
+		{
+			start += 2;
+			search = std::search(start, end, this->_crlfvec.begin(), this->_crlfvec.end());
+			if (search == end)
+			{
+				rest.insert(rest.end(), start, end);
+				return ret;
+			}
+		}
+		// now between start and search there is the number...
+		this->_chunksize = strHexDec(std::string(start, search));
+		this->_contentLength += this->_chunksize;
 		if (this->_chunksize == 0)
 		{
 			this->_headerStatus = COMPLETE;
 			return ret;
 		}
-		else
-		{
-			// skip \r\n
-			start = pos + 2;
-			while (this->_chunksize--)
-			{
-				ret.push_back(*start);
-				start++;
-				if (start == end)
-					return ret;
-			}
-			// if at the end of message and cant skip anymore
-			if (std::distance(start , end) < 2)
-			{
-				skip = 2 - std::distance(start, end);
-				return ret;
-			}
-			else
-				start += 2; // \r\n
-		}
+		start = search + 2;
 	}
 	return ret;
 }
-
-
 
 void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {

@@ -50,7 +50,6 @@ int	Client::readRequest()
 		return (ret);
 
 	if (this->_req.getStatus() == Request::HEADER) {
-		LOG_YELLOW("Header_status = Header");
 		this->_subBuffer.insert(this->_subBuffer.end(), buf.begin(), buf.begin() + ret);
 		std::vector<char>::const_iterator pos = find_pattern(_subBuffer, std::vector<char> (EO_HEADER, EO_HEADER + 4));
 		if (pos != this->_subBuffer.end())
@@ -58,12 +57,12 @@ int	Client::readRequest()
 			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(_subBuffer.begin()), pos + 4));
 			if (this->_req.getStatus() == Request::INVALID)
 				this->_status = WRITING;
+			LOG_RED(this->_req.getHeader());
 			this->_req.addBody(pos + 4, static_cast<std::vector<char>::const_iterator>((_subBuffer.end())));
 			this->_subBuffer.clear();
 		}
 	}
 	else {
-		LOG_YELLOW("Header_status = Body");
 		this->_req.addBody(buf.begin(), static_cast<std::vector<char>::const_iterator>((buf.begin() + ret)));
 	}
 
@@ -81,6 +80,7 @@ int Client::sendResponse()
 		LOG_RED("Could not write to socket");
 		return 0;
 	}
+		LOG_BLUE("Client sent Resposne");
 	if (_req.getConnection() == false) {
 		this->_req.clear();
 		LOG_BLUE("Client wished to close the connection\n");

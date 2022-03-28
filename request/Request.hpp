@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/21 00:08:49 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/28 18:23:41 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,8 @@ class Request
 
 
 	private:
+	
+		std::vector<char> _crlfvec;
 	
 		std::string _header;
 		std::vector<char> _body;
