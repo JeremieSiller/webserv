@@ -24,7 +24,7 @@
 class Interpreter {
 	
 	private:
-		const Request	&_request;
+		Request			_request;
 		Connection		*_connection;
 		response		_response;
 		Server			_server;
@@ -43,7 +43,9 @@ class Interpreter {
 		void	_findDirectory();
 		void	_appendLocationToRoot();
 	public:
-		Interpreter(const Request &Request, Connection *connection);
+		Interpreter();
+		const response	&getResponse() const;
+		Interpreter(Request &Request, Connection *connection);
 		int	send(const int &fd);
 		~Interpreter();
 };

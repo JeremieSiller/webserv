@@ -11,7 +11,12 @@
 #include <fcntl.h>
 #include "utils.hpp"
 
-Interpreter::Interpreter(const Request &request, Connection *connection) : _request(request), _connection(connection) {
+Interpreter::Interpreter() :
+	_request(), _connection(), _response(), _server(), _location(), _state(), _full_path() {
+
+}
+
+Interpreter::Interpreter(Request &request, Connection *connection) : _request(request), _connection(connection) {
 	_state = 0;
 	if (_request.getStatus() == Request::INVALID) {
 		_buildError(400);
@@ -259,44 +264,10 @@ void	Interpreter::_build(int code, std::string const &_file) {
 			}
 			vec.erase(vec.begin(), pos);
 		}
-		LOGN("Printing first 100 bytes of body");
-		for	(size_t i = 0; i < 100 && i < vec.size(); i++) {
-			if (vec[i] == 10 || vec[i] == 13) {
-				std::cout << ".";
-			} else {
-				std::cout << vec[i];
-			}
-			std::cout << " ";
-		}
-		std::cout << std::endl;
-		LOG_RED("Printing first 100 bytes of body as int");
-		for	(size_t i = 0; i < 100 && i < vec.size(); i++) {
-			std::cerr << (int)vec[i] << ' ';
-		}
-		std::cout << std::endl;
-		LOG_RED("------");
-		LOG_BLUE("vec-size: " << vec.size()); 
-		std::cout << std::endl;
 		std::stringstream ss;
 		ss << vec.size();
-		if (_request.getMethod() == "POST") {
-			_response.add_header("Content-length", "0");
-		} else {
-			_response.add_header("Content-length", ss.str());
-		}
-		// if (ends_with(_full_path, ".html") || _location._cgi_extension != "") {
-		// 	_response.add_header("Content-Type", "text/html");
-		// } else {
-		// 	_response.add_header("Content-Type", "media-type");
-		// }
-		int fd = open("test.txt", O_WRONLY | O_TRUNC | O_CREAT);
-		if (fd == -1)
-			perror("open");
-		if (write(fd, vec.begin().base(), vec.size()) == -1)
-			perror("write");
-		close(fd);
-		if (_request.getMethod() == "GET")
-			_response.add_body(vec);
+		_response.add_header("Content-length", ss.str());
+		_response.add_body(vec);
 	} else
 	{
 		_buildError(403);
@@ -321,4 +292,8 @@ void	Interpreter::_buildStandard() {
 		_response.add_header("Connection", "keep-alive");
 	else
 		_response.add_header("Connection", "close");
+}
+
+const response	&Interpreter::getResponse() const {
+	return _response;
 }
