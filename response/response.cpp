@@ -147,7 +147,7 @@ static std::string const getReason(const int &code) {
  * @param status  sets the status code of the reponse, e.g. 200
  * @param version sets the http version, standard value is HTTP/1.1
  */
-response::response(const int &status, const std::string &version) : _statusCode(status), _version(version), _header(), _body() {
+response::response(const int &status, const std::string &version) : _statusCode(status), _version(version), _header(), _body(), _state(START_WRITING) {
 	_build();
 }
 
@@ -164,12 +164,24 @@ response::~response() { }
  * @return int returns the value of the write-call
  */
 int	response::write_response(const int &fd) {
-	_pushEndOfLine();
-	// write(1, _header.begin().base(), _header.size());
-	LOG_RED("body: " << _body.size());
-	_header.insert(_header.end(), _body.begin(), _body.end());
-	return (write(fd, _header.begin().base(), _header.size()));
-
+	if (_state == START_WRITING) {
+		_pushEndOfLine();
+		_header.insert(_header.end(), _body.begin(), _body.end());
+	}
+	ssize_t	tmp = write(fd, _header.begin().base(), _header.size());
+	if (tmp < static_cast<ssize_t>(_header.size())) {
+		if (tmp == -1) {
+			_state = START_WRITING;
+			return -1;
+		} else {
+			_header.erase(_header.begin(), _header.begin() + tmp);
+			_state = WRITING;
+			return 1;
+		}
+	} else {
+		_state = START_WRITING;
+		return 0;
+	}
 }
 
 /**
@@ -225,4 +237,5 @@ void	response::add_body(const std::vector<char> &body) {
 	_body.insert(_body.end(), body.begin(), body.end());
 }
 
-response::response() : _statusCode(), _version(), _header(), _body() {}
+
+response::response() : _statusCode(), _version(), _header(), _body(), _state(START_WRITING) {}

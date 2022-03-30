@@ -201,7 +201,6 @@ void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>
 	}
 	else
 	{
-		LOG_RED("this would be stupidly wrong");
 		this->_body.insert(_body.end(), start, end);
 		if (this->_body.size() >= this->_contentLength)
 			this->_headerStatus = COMPLETE;

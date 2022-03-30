@@ -78,19 +78,24 @@ int	Client::readRequest()
 
 int Client::sendResponse()
 {
-	this->_status = READING;
-	Interpreter i(this->_req, this->_connection);
-	if (i.send(this->_client_socket) == -1) {
+	if (_interpreter.getResponse().getState() == response::START_WRITING) {
+		_interpreter = Interpreter(this->_req, this->_connection);
+	}
+	ssize_t tmp = _interpreter.send(this->_client_socket);
+	if (tmp == -1) {
+		this->_status = READING;
 		this->_req.clear();
 		LOG_RED("Could not write to socket");
 		return 0;
 	}
-	LOG_BLUE("Client sent Resposne");
-	if (_req.getConnection() == false) {
+	if (tmp == 0) {
+		LOG_BLUE("Client sent Resposne");
+		this->_status = READING;
 		this->_req.clear();
-		LOG_BLUE("Client wished to close the connection\n");
-		return 0;
+		if (_req.getConnection() == false) {
+			LOG_BLUE("Client wished to close the connection\n");
+			return 0;
+		}
 	}
-	this->_req.clear();
 	return 1;
 }

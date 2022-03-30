@@ -47,6 +47,7 @@ class Client
 		clientstatus				_status;
 		Connection					*_connection;
 		Request 					_req;
+		Interpreter					_interpreter;
 		std::vector<char>			_subBuffer;
 
 	public:
