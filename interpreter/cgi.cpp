@@ -51,7 +51,11 @@ void	cgi::_setEnv() {
 	_env["SCRIPT_NAME"] = _path;
 	_env["REQUEST_URI"] = _path;
 	_env["AUTH_TYPE"] = "";
-	_env["HTTP_X_SECRET_HEADER_FOR_TEST"] = "";
+	std::map<std::string, std::string>::const_iterator it = _req.getParsedHeader().begin();
+	while (it != _req.getParsedHeader().end()) {
+		_env["HTTP_" + it->first] = it->second;
+		it++;
+	}
 }
 
 void	cgi::_runCgi() {
@@ -59,7 +63,6 @@ void	cgi::_runCgi() {
 	fdin = fileno(_input);
 	fdout = fileno(_output);
 	write(fdin, _req.getBody().begin().base(), _req.getBody().size());
-	std::vector<char>::const_iterator it = _req.getBody().begin();
 	lseek(fdin, 0, SEEK_SET);
 	int	pid = fork();
 	if (pid == -1) {

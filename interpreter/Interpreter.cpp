@@ -185,8 +185,9 @@ void	Interpreter::_findFile() {
 			}
 			_build(200, _full_path);
 		} else {
-			_build(301, "standard-html/301.html");
-			_response.add_header("Location", _request.getInterpreterInfo().abs_path + "/");
+			_full_path += '/';
+			_findDirectory();
+			return ;
 		}
 	} else {
 		if (_request.getMethod() == "PUT") {
@@ -198,8 +199,11 @@ void	Interpreter::_findFile() {
 				return ;
 			}
 		}
-
-		_buildError(404);
+		if (_request.getMethod() == "GET") {
+			_buildError(404);
+		} else {
+			_build(200, _full_path);
+		}
 	}
 }
 
