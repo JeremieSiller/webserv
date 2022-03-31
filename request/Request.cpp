@@ -207,23 +207,24 @@ void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>
 
 void Request::clear()
 {
-	this->_header = "";
-	this->_body.clear();
-	this->_parsedHeader = std::map<std::string, std::string>();
-	this->_version = "";
-	this->_path = "";
-	this->_method = "";
-	this->_headerStatus = HEADER;
-	this->_chunksize = 0;
-	this->_host = "";
-	this->_contentLength = 0;
-	this->_transferEncoding = "";
-	this->_connection = true;
-	this->_expect = false;
-	this->_contenttype ="";
-	this->_location = "";
-	this->_server = "";
-	this->_accept = std::list<std::string>();
+	*this = Request();
+	// this->_header = "";
+	// this->_body.clear();
+	// this->_parsedHeader = std::map<std::string, std::string>();
+	// this->_version = "";
+	// this->_path = "";
+	// this->_method = "";
+	// this->_headerStatus = HEADER;
+	// this->_chunksize = 0;
+	// this->_host = "";
+	// this->_contentLength = 0;
+	// this->_transferEncoding = "";
+	// this->_connection = true;
+	// this->_expect = false;
+	// this->_contenttype ="";
+	// this->_location = "";
+	// this->_server = "";
+	// this->_accept = std::list<std::string>();
 }
 
 

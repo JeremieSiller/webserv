@@ -22,6 +22,7 @@ Interpreter::Interpreter(Request &request, Connection *connection) : _request(re
 		_buildError(400);
 		return ;
 	}
+	LOG_YELLOW("method: |" << _request.getMethod() << "|");
 	_findHostname();
 	std::vector<std::string>::const_iterator it = _server.getServerName().begin();
 	while (it != _server.getServerName().end()) {
@@ -32,6 +33,9 @@ Interpreter::Interpreter(Request &request, Connection *connection) : _request(re
 	if (_state == 1)
 		return ;
 	_checkMethods();
+	if (_state == 1)
+		return ;
+	_checkBodySize();
 	if (_state == 1)
 		return ;
 	_appendLocationToRoot();
@@ -98,6 +102,13 @@ void	Interpreter::_buildError(int error) {
 		_response.add_body(vec);
 		_response.add_header("Content-Type", "text/html");
 		_response.add_header("Content-length", "3");
+	}
+}
+
+void	Interpreter::_checkBodySize() {
+		LOG_YELLOW("Body size: " << _request.getBody().size());
+	if (_location._client_max_body_size != 0 && _request.getBody().size() > _location._client_max_body_size) {
+		_buildError(413);
 	}
 }
 

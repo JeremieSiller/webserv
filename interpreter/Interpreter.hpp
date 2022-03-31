@@ -42,6 +42,7 @@ class Interpreter {
 		void	_findFile();
 		void	_findDirectory();
 		void	_appendLocationToRoot();
+		void	_checkBodySize();
 	public:
 		Interpreter();
 		const response	&getResponse() const;
