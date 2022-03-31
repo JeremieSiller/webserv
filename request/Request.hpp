@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/21 13:16:53 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/28 18:23:41 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/31 15:52:25 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,7 @@ class Request
 	private:
 
 		
+		std::vector<char>	rest;
 		std::vector<char> _parseChunked(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end);
 		
 		int											prepareInterpreter();

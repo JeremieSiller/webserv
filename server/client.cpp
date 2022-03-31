@@ -49,6 +49,15 @@ int	Client::readRequest()
 	if (ret <= 0)
 		return (ret);
 
+	// for (int i = 0; i < ret; i++)
+	// {
+	// 	if (buf[i] == '\r')
+	// 		std::cout << "\\r";
+	// 	else if (buf[i] == '\n')
+	// 		std::cout << "\\n";
+	// 	else
+	// 		std::cout << buf[i];
+	// }
 	if (this->_req.getStatus() == Request::HEADER) {
 		this->_subBuffer.insert(this->_subBuffer.end(), buf.begin(), buf.begin() + ret);
 		std::vector<char>::const_iterator pos = find_pattern(_subBuffer, std::vector<char> (EO_HEADER, EO_HEADER + 4));
@@ -89,7 +98,7 @@ int Client::sendResponse()
 		return 0;
 	}
 	if (tmp == 0) {
-		LOG_BLUE("Client sent Resposne");
+		LOG_BLUE("Server sent Response");
 		this->_status = READING;
 		this->_req.clear();
 		if (_req.getConnection() == false) {

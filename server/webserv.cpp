@@ -125,6 +125,7 @@ void webserv::run()
 					// dont forget to clear vector in client !!
 					// either client status is DIE or WRITE which is the same
 					LOG_BLUE("Writing to socket");
+					//LOG_YELLOW((*itr)->getRequest().getHeader() << (*itr)->getRequest().getBody().size());
 					if (!(*itr)->sendResponse())
 					{
 						
