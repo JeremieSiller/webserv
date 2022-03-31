@@ -212,7 +212,7 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 				throw unexpectedToken(it->content(), ", autoindex needs exaclty one arguement");
 			}
 		} else if (it->type() == ConfigToken::MAX_BODY_SIZE) {
-			if (l._client_max_body_size != "") {
+			if (l._client_max_body_size != 0) {
 				throw unexpectedToken(it->content(), ", can not be set twice");
 			}
 			it++;
@@ -220,9 +220,15 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 				throw unexpectedToken(it->content(), ", client_max_body_size can not be empty");
 			}
 			if (it->type() != ConfigToken::INTEGER) {
-				throw unexpectedToken(it->content(), ", client_max_body_size must be an integer");
+				throw unexpectedToken(it->content(), ", client_max_body_size must be size_t");
 			}
-			l._client_max_body_size = it->content();
+			try
+			{
+				std::stringstream sstream(it->content());
+				sstream >> l._client_max_body_size;
+			} catch (std::exception const &e) {
+					throw unexpectedToken(it->content(), ", not a valid PORT, needs to fit in a short");
+			}
 			it++;
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", client_max_body_size can not contain more than one arguement");
