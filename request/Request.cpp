@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/28 19:12:33 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/03/31 16:31:12 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 
 
 
-Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _method(), _headerStatus(HEADER), _chunksize() , _host(), _contentLength(), _transferEncoding(), _connection(true), _expect(false), _contenttype(), _location(), _server(), _accept() {this->_crlfvec = std::vector<char>(CRLF, CRLF + 2);}
+Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _method(), _headerStatus(HEADER), _chunksize() , _host(), _contentLength(), _transferEncoding(), _connection(true), _expect(false), _contenttype(), _location(), _server(), _accept() {this->_crlfvec = std::vector<char>(CRLF, &CRLF[2]);}
 
 void Request::setHeader(std::string const &header)
 {
@@ -135,7 +135,6 @@ int strHexDec(std::string str)
 
 std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
-	static std::vector<char>	rest;
 	std::vector<char>			ret;
 	std::vector<char>::const_iterator search;
 	std::vector<char>			copy;
@@ -167,7 +166,7 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 			return ret;
 		}
 		// we caught first \r\n not complete shit
-		if (!isdigit(*start))
+		if (!isalnum(*start))
 		{
 			start += 2;
 			search = std::search(start, end, this->_crlfvec.begin(), this->_crlfvec.end());
@@ -183,6 +182,7 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 		if (this->_chunksize == 0)
 		{
 			this->_headerStatus = COMPLETE;
+			rest.clear();
 			return ret;
 		}
 		start = search + 2;
@@ -199,7 +199,6 @@ void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>
 	}
 	else
 	{
-		LOG_RED("this would be stupidly wrong");
 		this->_body.insert(_body.end(), start, end);
 		if (this->_body.size() >= this->_contentLength)
 			this->_headerStatus = COMPLETE;

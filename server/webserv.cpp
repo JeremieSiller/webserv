@@ -124,10 +124,11 @@ void webserv::run()
 					// parse then send response
 					// dont forget to clear vector in client !!
 					// either client status is DIE or WRITE which is the same
-					LOG_BLUE("Writing to socket; size: " << (*itr)->getRequest().getBody().size());
-					(*itr)->setClientStatus(Client::READING);
+					LOG_BLUE("Writing to socket");
+					//LOG_YELLOW((*itr)->getRequest().getHeader() << (*itr)->getRequest().getBody().size());
 					if (!(*itr)->sendResponse())
 					{
+						
 						this->_removeClient(itr);
 					}
 					//LOG_GREEN("Send repsonse to client");
