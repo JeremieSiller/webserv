@@ -166,6 +166,12 @@ response::~response() { }
 int	response::write_response(const int &fd) {
 	if (_state == START_WRITING) {
 		_pushEndOfLine();
+		LOG_BLUE("Response: ");
+		for (size_t i = 0; i < _header.size(); i++)
+		{
+			std::cout << _header[i];
+		}
+		LOG_BLUE("------");
 		_header.insert(_header.end(), _body.begin(), _body.end());
 	}
 	ssize_t	tmp = write(fd, _header.begin().base(), _header.size());
