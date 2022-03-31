@@ -211,6 +211,22 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", autoindex needs exaclty one arguement");
 			}
+		} else if (it->type() == ConfigToken::MAX_BODY_SIZE) {
+			if (l._client_max_body_size != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			if (it->type() == ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", client_max_body_size can not be empty");
+			}
+			if (it->type() != ConfigToken::INTEGER) {
+				throw unexpectedToken(it->content(), ", client_max_body_size must be an integer");
+			}
+			l._client_max_body_size = it->content();
+			it++;
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", client_max_body_size can not contain more than one arguement");
+			}
 		} else if (it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::EOF_INSTRUCT) {
 			throw unexpectedToken(it->content(), ", can not be in location scope");
 		} 
@@ -288,19 +304,6 @@ void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connecti
 			location l;
 			_checkLocation(it, l);
 			s._locations.push_back(l);
-		} else if (it->type() == ConfigToken::MAX_BODY_SIZE) {
-			if (s._client_max_body_size != "") {
-				throw unexpectedToken(it->content(), ", can not be set twice");
-			}
-			it++;
-			if (it->type() == ConfigToken::EOF_INSTRUCT) {
-				throw unexpectedToken(it->content(), ", client_max_body_size can not be empty");
-			}
-			s._client_max_body_size = it->content();
-			it++;
-			if (it->type() != ConfigToken::EOF_INSTRUCT) {
-				throw unexpectedToken(it->content(), ", client_max_body_size can not contain more than one arguement");
-			}
 		} else if (it->type() != ConfigToken::SCOPE_START && it->type() != ConfigToken::SCOPE_END && it->type() != ConfigToken::EOF_INSTRUCT) {
 			throw unexpectedToken(it->content(), ", can not be in server scope");
 		}

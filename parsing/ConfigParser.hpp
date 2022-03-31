@@ -31,6 +31,7 @@ typedef struct s_location {
 	std::string						_cgi_path;
 	std::set<std::string>			_cgi_method;
 	char							_autoindex;
+	std::string							_client_max_body_size;
 }	location;
 
 typedef struct s_server {
@@ -38,7 +39,6 @@ typedef struct s_server {
 	std::vector<std::string>			_server_names; //compare with host
 	std::map<int, std::string>			_error_pages;
 	std::string							_root;
-	std::string							_client_max_body_size;
 } server;
 
 typedef struct s_connection {
