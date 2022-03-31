@@ -181,8 +181,13 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 		this->_contentLength += this->_chunksize;
 		if (this->_chunksize == 0)
 		{
-			this->_headerStatus = COMPLETE;
 			rest.clear();
+			if (std::search(start, end, CRLFTWO, &CRLFTWO[4]) == end)
+			{
+				rest.insert(rest.end(), start, end);
+				return ret;
+			}
+			this->_headerStatus = COMPLETE;
 			return ret;
 		}
 		start = search + 2;

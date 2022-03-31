@@ -23,6 +23,7 @@
 # include "../main.hpp"
 
 # define CRLF "\r\n"
+# define CRLFTWO "\r\n\r\n"
 
 struct s_multipart
 {
