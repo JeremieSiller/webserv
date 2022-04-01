@@ -3,37 +3,37 @@ CC = g++
 CFLAGS = -Wall -Wextra -std=c++98
 #need to add -Werror
 
-INC =	interpreter/Interpreter.hpp	\
-		parsing/AToken.hpp			\
-		parsing/ConfigParser.hpp	\
-		parsing/ConfigToken.hpp		\
-		parsing/Lexer.hpp			\
-		parsing/utility.hpp			\
-		request/Request.hpp			\
-		response/errorcodes.hpp		\
-		response/response.hpp		\
-		server/client.hpp			\
-		server/connection.hpp		\
-		server/server.hpp			\
-		server/webserv.hpp			\
-		main.hpp					\
-		interpreter/Interpreter.hpp	\
-		interpreter/cgi.hpp			\
-		interpreter/utils.hpp		\
+INC =	src/interpreter/Interpreter.hpp	\
+		src/parsing/AToken.hpp			\
+		src/parsing/ConfigParser.hpp	\
+		src/parsing/ConfigToken.hpp		\
+		src/parsing/Lexer.hpp			\
+		src/parsing/utility.hpp			\
+		src/request/Request.hpp			\
+		src/response/errorcodes.hpp		\
+		src/response/response.hpp		\
+		src/server/client.hpp			\
+		src/server/connection.hpp		\
+		src/server/server.hpp			\
+		src/server/webserv.hpp			\
+		src/main.hpp					\
+		src/interpreter/Interpreter.hpp	\
+		src/interpreter/cgi.hpp			\
+		src/interpreter/utils.hpp		\
 
-SRC =	main.cpp					\
-		parsing/AToken.cpp			\
-		parsing/ConfigParser.cpp	\
-		parsing/ConfigToken.cpp		\
-		parsing/utility.cpp			\
-		server/client.cpp			\
-		server/connection.cpp		\
-		server/server.cpp			\
-		server/webserv.cpp			\
-		request/Request.cpp			\
-		response/response.cpp		\
-		interpreter/Interpreter.cpp	\
-		interpreter/cgi.cpp			\
+SRC =	src/main.cpp					\
+		src/parsing/AToken.cpp			\
+		src/parsing/ConfigParser.cpp	\
+		src/parsing/ConfigToken.cpp		\
+		src/parsing/utility.cpp			\
+		src/server/client.cpp			\
+		src/server/connection.cpp		\
+		src/server/server.cpp			\
+		src/server/webserv.cpp			\
+		src/request/Request.cpp			\
+		src/response/response.cpp		\
+		src/interpreter/Interpreter.cpp	\
+		src/interpreter/cgi.cpp			\
 
 #server/location.hpp			\
 #server/location.cpp			\
