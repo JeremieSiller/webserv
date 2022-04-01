@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/03/21 00:09:20 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/04/01 17:05:06 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ class Client
 	private:
 
 		t_socket					_client_socket;
-		struct sockaddr_in			_addr;
 		clientstatus				_status;
 		Connection					*_connection;
 		Request 					_req;
@@ -52,7 +51,7 @@ class Client
 
 	public:
 
-		Client(t_socket client_socket, struct sockaddr_in _addr, Connection *connection);
+		Client(t_socket client_socket, Connection *connection);
 		~Client();
 
 		t_socket		getSocket() { return this->_client_socket; }

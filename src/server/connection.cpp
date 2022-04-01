@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 12:05:03 by jsiller           #+#    #+#             */
-/*   Updated: 2022/03/16 13:47:09 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/04/01 17:05:18 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ Client *Connection::newAccept()
 
 	fcntl(client_socket, F_SETFL, O_NONBLOCK);
 
-	return new Client(client_socket, (struct sockaddr_in)client_addr, this);
+	return new Client(client_socket, this);
 }
 
 void	Connection::addServer(Server const& in)

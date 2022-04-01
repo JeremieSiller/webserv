@@ -15,6 +15,7 @@
 #include <string.h>
 #include <algorithm>
 #include <sstream>
+#include "connection.hpp"
 
 char EO_HEADER[] = {'\r', '\n', '\r', '\n'};
 
@@ -29,7 +30,7 @@ std::vector<char>::const_iterator	Client::find_pattern(const std::vector<char> &
 	return std::search(data.begin(), data.end(), pattern.begin(), pattern.end());
 }
 
-Client::Client(t_socket client_socket, struct sockaddr_in addr, Connection *connection) : _client_socket(client_socket), _addr(addr),  _status(READING), _connection(connection)
+Client::Client(t_socket client_socket, Connection *connection) : _client_socket(client_socket), _status(READING), _connection(connection)
 {
 }
 
