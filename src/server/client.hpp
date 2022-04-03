@@ -20,6 +20,7 @@
 # include "../request/Request.hpp"
 # include "../main.hpp"
 # include "../interpreter/Interpreter.hpp"
+# define INTERNAL_SERVER_ERROR "HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\nContent-Type: text/html\r\nServer: webserv\r\nContent-Length: 12\r\n\r\n<h1>500</h1>"
 
 typedef int t_socket;
 
@@ -48,6 +49,7 @@ class Client
 		Request 					_req;
 		Interpreter					_interpreter;
 		std::vector<char>			_subBuffer;
+		size_t						_offset;
 
 	public:
 
@@ -61,6 +63,8 @@ class Client
 
 		int				readRequest();
 		int				sendResponse();
+
+		int				internalServerError();
 		
 		Request			&getRequest() { return this->_req; }
 };

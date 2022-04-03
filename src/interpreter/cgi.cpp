@@ -67,35 +67,39 @@ void	cgi::_runCgi() {
 	int	pid = fork();
 	if (pid == -1) {
 		LOG_RED("Fork failed");
-		throw "internal server error";
+		throw std::runtime_error("fork failure");
 	}
 	else if (pid == 0) {
 		if (dup2(fdin, 0) == -1) {
-			exit(99);
+			exit(1);
 		}
 		if (dup2(fdout, 1) == -1) {
-			exit(99);
+			exit(1);
 		}
-		// close(fdin);
-		// close(fdout);
+		close(fdin);
+		close(fdout);
 		char **arr = (char **)calloc(sizeof(char *), 3);
 		arr[0] = &(_loc._cgi_path[0]); 
 		arr[1] = &(_path[0]);
 		extern char **environ;
 		char **env = to_c_array(_env);
 		if (execve(_loc._cgi_path.c_str(), &(arr[0]), env) == -1) {
-			perror("lol");
-			exit(99);
+			perror(arr[0]);
+			exit(1);
 		}
 	} else {
 		close(fdin);
 		int exit_status;
 		wait(&exit_status);
+		int tmp;
 		if (WIFEXITED(exit_status)) {
-			if (WEXITSTATUS(exit_status) == 99)
-				throw "internal server error";
+			if ((tmp = WEXITSTATUS(exit_status)) != 0) {
+				LOG_RED("Cgi returned error-code: " << tmp);
+				throw std::runtime_error("could not execute cgi");
+			}
 		}
 	}
+	LOG_GREEN("cgi ran successfully");
 	lseek(fdout, 0, SEEK_SET);
 }
 
