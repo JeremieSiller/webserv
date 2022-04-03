@@ -31,10 +31,10 @@ cgi::~cgi()
 
 void	cgi::_setEnv() {
 	_env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	if (!_req.getBody().empty())
+	if (!_req.getBody().empty()) {
 		_env["CONTENT_LENGTH"] = to_string(_req.getContentLength());
-	_env["CONTENT_TYPE"] = _req.getParsedHeader().find("Content-Type")->second;
-	LOG_RED("Content-tyepe: " << _env["CONTENT_TYPE"]);
+		_env["CONTENT_TYPE"] = _req.getParsedHeader().find("Content-Type")->second;
+	}
 	_env["PATH_INFO"] = _path;
 	_env["PATH_TRANSLATED"] = _path;
 	_env["QUERY_STRING"] = _req.getInterpreterInfo().query;
@@ -62,6 +62,7 @@ void	cgi::_runCgi() {
 	int	fdin, fdout;
 	fdin = fileno(_input);
 	fdout = fileno(_output);
+	LOG_GREEN("WHYYYYY");
 	write(fdin, _req.getBody().begin().base(), _req.getBody().size());
 	lseek(fdin, 0, SEEK_SET);
 	int	pid = fork();

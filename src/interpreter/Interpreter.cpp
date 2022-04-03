@@ -184,36 +184,27 @@ void	Interpreter::_findFile() {
 	struct stat s;
 	if (stat(_full_path.c_str(), &s) == 0) {
 		if ( s.st_mode & S_IFREG) {
-			if (_request.getMethod() == "PUT") {
-				LOG_YELLOW("file already exists");
-				FILE  *fp = fopen(_full_path.c_str(), "w");
-				if (fp) {
-					fwrite(_request.getBody().begin().base(), 1, _request.getBody().size(), fp);
-					fclose(fp);
-					_buildText(204, "");
-					return ;
-				}
+			if (_location._upload == 1 && (_request.getMethod() == "PUT" || _request.getMethod() == "POST")) {
+				_fileUpload(true);
+			} else if (1) { //cgi
+
+				_build(200, _full_path);
+			} else {
+				_build(200, _full_path);
 			}
-			_build(200, _full_path);
 		} else {
 			_full_path += '/';
 			_findDirectory();
-			return ;
 		}
 	} else {
-		if (_request.getMethod() == "PUT") {
-			FILE *fp = fopen(_full_path.c_str(), "w");
-			if (fp) {
-				fwrite(_request.getBody().begin().base(), 1, _request.getBody().size(), fp);
-				_buildText(201, "");
-				fclose(fp);
-				return ;
-			}
-		}
-		if (_request.getMethod() == "GET") {
+		if (_location._upload == 1 && (_request.getMethod() == "PUT" || _request.getMethod() == "POST")) {
+			_fileUpload(false);
+		} else if (1 ) { //cgi
+
 			_buildError(404);
-		} else {
-			_build(200, _full_path);
+		}
+		else {
+			_buildError(404);
 		}
 	}
 }
@@ -224,8 +215,9 @@ void	Interpreter::_build(int code, std::string const &_file) {
 	_buildStandard();
 	FILE *fp;
 	std::vector<char> vec;
-	if (ends_with(_request.getInterpreterInfo().abs_path, _location._cgi_extension) && 
-		_location._cgi_method.find(_request.getMethod()) != _location._cgi_method.end()) {
+	LOG_RED("to check: |" << _request.getInterpreterInfo().abs_path << "|");
+	LOG_BLUE("cgi_extension: |" << _location._cgi_extension << "|");
+	if (ends_with(_request.getInterpreterInfo().abs_path, _location._cgi_extension)) {
 		LOG_YELLOW("CGI");
 		LOG_GREEN("body-size: " << _request.getBody().size());
 		cgi c(_request, _location, _file);
@@ -311,4 +303,23 @@ void	Interpreter::_buildStandard() {
 
 const response	&Interpreter::getResponse() const {
 	return _response;
+}
+
+void	Interpreter::_fileUpload(bool exists) {
+	std::string	path = _full_path.substr(_full_path.find_last_of('/'));
+	path = _location._upload_path + path;
+	LOG_BLUE("file_path: " << path);
+	FILE  *fp = fopen(path.c_str(), "w");
+	if (fp) {
+		fwrite(_request.getBody().begin().base(), 1, _request.getBody().size(), fp);
+		fclose(fp);
+		if (exists == 1) {
+			_buildText(204, "");
+		}
+		else  {
+			_buildText(201, "");
+		}
+		return ;
+	}
+	_buildError(500);
 }

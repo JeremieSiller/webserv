@@ -43,6 +43,7 @@ class Interpreter {
 		void	_findDirectory();
 		void	_appendLocationToRoot();
 		void	_checkBodySize();
+		void	_fileUpload(bool existing);
 	public:
 		Interpreter();
 		const response	&getResponse() const;
