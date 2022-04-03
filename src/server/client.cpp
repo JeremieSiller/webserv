@@ -30,7 +30,7 @@ std::vector<char>::const_iterator	Client::find_pattern(const std::vector<char> &
 	return std::search(data.begin(), data.end(), pattern.begin(), pattern.end());
 }
 
-Client::Client(t_socket client_socket, Connection *connection) : _client_socket(client_socket), _status(READING), _connection(connection)
+Client::Client(t_socket client_socket, Connection *connection) : _client_socket(client_socket), _status(READING), _connection(connection), _offset()
 {
 }
 
@@ -107,5 +107,28 @@ int Client::sendResponse()
 			return 0;
 		}
 	}
+	return 1;
+}
+
+int	Client::internalServerError() {
+	ssize_t	tmp;
+
+	LOG_RED("Internal Server Error: sending 500");
+	tmp = write(_client_socket, &(INTERNAL_SERVER_ERROR[_offset]), strlen(INTERNAL_SERVER_ERROR) - _offset);
+	if (tmp == -1) {
+		this->_status = READING;
+		this->_req.clear();
+		_offset = 0;
+		LOG_RED("Could not write to socket");
+		return (0);
+	}
+	if (tmp == strlen(INTERNAL_SERVER_ERROR)) {
+		this->_status = READING;
+		this->_req.clear();
+		LOG_BLUE("Server sent 500 to client");
+		_offset = 0;
+		return 0;
+	}
+	_offset += tmp;
 	return 1;
 }

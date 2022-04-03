@@ -126,10 +126,15 @@ void webserv::run()
 					// either client status is DIE or WRITE which is the same
 					LOG_BLUE("Writing to socket");
 					//LOG_YELLOW((*itr)->getRequest().getHeader() << (*itr)->getRequest().getBody().size());
-					if (!(*itr)->sendResponse())
-					{
-						
-						this->_removeClient(itr);
+					try {
+						if (!(*itr)->sendResponse()) {
+							this->_removeClient(itr);
+						}
+					} catch (const std::exception &e) {
+						LOG_RED("Caught exception: " << e.what());
+						if (!(*itr)->internalServerError()) {
+							this->_removeClient(itr);
+						}
 					}
 					//LOG_GREEN("Send repsonse to client");
 					

@@ -250,10 +250,13 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connection &c) {
 	size_t scope = it->scope();
 	server s;
+	s._error_pages[301] = "standard-html/301.html";
 	s._error_pages[400] = "standard-html/400.html";
 	s._error_pages[403] = "standard-html/403.html";
 	s._error_pages[404] = "standard-html/404.html";
 	s._error_pages[405] = "standard-html/405.html";
+	s._error_pages[413] = "standard-html/413.html";
+	s._error_pages[500] = "standard-html/500.html";
 	it++;
 	while (it != _tokens.end() && it->scope() > scope) {
 		if (it->type() == ConfigToken::ROOT) {
