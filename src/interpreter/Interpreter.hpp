@@ -31,6 +31,7 @@ class Interpreter {
 		location		_location;
 		bool			_state;
 		std::string		_full_path;
+		FILE			*_file;
 
 		void	_findHostname();
 		void	_findLocation(const std::vector<location> &l);
@@ -44,6 +45,8 @@ class Interpreter {
 		void	_appendLocationToRoot();
 		void	_checkBodySize();
 		void	_fileUpload(bool existing);
+		void	_cgi();
+		void	_openFile();
 	public:
 		Interpreter();
 		const response	&getResponse() const;

@@ -305,6 +305,11 @@ const response	&Interpreter::getResponse() const {
 	return _response;
 }
 
+/**
+ * @brief uploads file to given directory
+ * TODO: -> use cgi for upload. check in config file that upload_path is given if upload is enabled
+ * @param exists determines if 201 (file created) or 204 (file updated) is returned
+ */
 void	Interpreter::_fileUpload(bool exists) {
 	std::string	path = _full_path.substr(_full_path.find_last_of('/'));
 	path = _location._upload_path + path;
@@ -322,4 +327,8 @@ void	Interpreter::_fileUpload(bool exists) {
 		return ;
 	}
 	_buildError(500);
+}
+
+void	Interpreter::_cgi() {
+
 }
