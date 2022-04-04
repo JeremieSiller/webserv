@@ -31,7 +31,7 @@ public:
 	~response();
 	int		write_response(const int &fd); //writes the full response to filedescriptor
 	void	add_header(const std::string &attribute, const std::string &value);
-	void	add_body(const std::vector<char> &body);
+	void	add_body(const std::vector<char> &body, const size_t &offset);
 	const	t_state	&getState() const { return  _state; }
 };
 
