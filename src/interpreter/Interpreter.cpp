@@ -12,23 +12,17 @@
 #include "utils.hpp"
 
 Interpreter::Interpreter() :
-	_request(), _connection(), _response(), _server(), _location(), _state(), _full_path() {
+	_request(), _connection(), _response(), _server(), _location(), _state(), _full_path(), _file() {
 
 }
 
-Interpreter::Interpreter(Request &request, Connection *connection) : _request(request), _connection(connection) {
-	_state = 0;
+Interpreter::Interpreter(Request &request, Connection *connection) :
+	_request(request), _connection(connection), _response(), _server(), _location(), _state(), _full_path(), _file() {
 	if (_request.getStatus() == Request::INVALID) {
 		_buildError(400);
 		return ;
 	}
-	LOG_YELLOW("method: |" << _request.getMethod() << "|");
 	_findHostname();
-	std::vector<std::string>::const_iterator it = _server.getServerName().begin();
-	while (it != _server.getServerName().end()) {
-		LOG_BLUE("server-name: " << *it);
-		it++;
-	}
 	_findLocation(_server.getLocations());
 	if (_state == 1)
 		return ;
@@ -50,11 +44,19 @@ Interpreter::~Interpreter() {
 
 }
 
-
+/**
+ * @brief finds the server according to the hostname in the header
+ */
 void	Interpreter::_findHostname() {
 	_server = _connection->getServer(_request.getHost());
 }
 
+/**
+ * @brief finds the most accurate location according to the path in HTTP
+ * e.g. request: GET /www/doc/ HTTP/1.1 would find /www/doc/ as a location or /www/ if /www/doc does not exist and / if /www doees not exist
+ * if no locations matches 404 is build
+ * @param l vector of locations
+ */
 void	Interpreter::_findLocation(std::vector<location> const &l) {
 	std::vector<location>::const_iterator it = l.begin();
 	int		max = -1;
@@ -72,9 +74,13 @@ void	Interpreter::_findLocation(std::vector<location> const &l) {
 		_buildError(404);
 		return ;
 	}
-	LOG_GREEN(_location._path << " is the most exact match for: " << _request.getInterpreterInfo().abs_path);
 }
 
+/**
+ * @brief builds error message
+ * opens error_page and adds it as body content
+ * @param error the error code to be send
+ */
 void	Interpreter::_buildError(int error) {
 	_state = true;
 	_response = response(error);
@@ -99,27 +105,39 @@ void	Interpreter::_buildError(int error) {
 		vec.push_back('5');
 		vec.push_back('0');
 		vec.push_back('0');
-		_response.add_body(vec);
 		_response.add_header("Content-Type", "text/html");
 		_response.add_header("Content-length", "3");
+		_response.add_body(vec);
 	}
 }
 
+/**
+ * @brief cheks the body size and returns 413 payload too big if 
+ * body size is too big.
+ */
 void	Interpreter::_checkBodySize() {
-		LOG_YELLOW("Body size: " << _request.getBody().size());
 	if (_location._client_max_body_size != 0 && _request.getBody().size() > _location._client_max_body_size) {
 		_buildError(413);
 	}
 }
 
+/**
+ * @brief checks if the method is allowed in the current location scope
+ * builds 405 Method not allowed if the method is not allowed
+ */
 void	Interpreter::_checkMethods() {
 	if (_location._methods.find(_request.getMethod()) == _location._methods.end()) {
 		_buildError(405);
 	}
 }
 
+/**
+ * @brief writes the full request to a file
+ * 
+ * @param fd the filedescriptor usually a socket
+ * @return int 
+ */
 int	Interpreter::send(const int &fd) {
-
 	return (_response.write_response(fd));
 }
 
@@ -307,14 +325,14 @@ const response	&Interpreter::getResponse() const {
 
 /**
  * @brief uploads file to given directory
- * TODO: -> use cgi for upload. check in config file that upload_path is given if upload is enabled
+ * TODO:use cgi for upload. check in config file that upload_path is given if upload is enabled
  * @param exists determines if 201 (file created) or 204 (file updated) is returned
  */
 void	Interpreter::_fileUpload(bool exists) {
 	std::string	path = _full_path.substr(_full_path.find_last_of('/'));
 	path = _location._upload_path + path;
 	LOG_BLUE("file_path: " << path);
-	FILE  *fp = fopen(path.c_str(), "w");
+	FILE *fp = fopen(path.c_str(), "w");
 	if (fp) {
 		fwrite(_request.getBody().begin().base(), 1, _request.getBody().size(), fp);
 		fclose(fp);
