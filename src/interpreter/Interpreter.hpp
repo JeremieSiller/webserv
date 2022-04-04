@@ -32,12 +32,13 @@ class Interpreter {
 		bool			_state;
 		std::string		_full_path;
 		FILE			*_file;
+		bool			_iscgi;
 
 		void	_findHostname();
 		void	_findLocation(const std::vector<location> &l);
 		void	_buildError(int error);
 		void	_buildStandard();
-		void	_build(int code, std::string const &_file);
+		void	_build(int code);
 		void	_buildText(int code, std::string const &text);
 		void	_checkMethods();
 		void	_findFile();
@@ -45,8 +46,8 @@ class Interpreter {
 		void	_appendLocationToRoot();
 		void	_checkBodySize();
 		void	_fileUpload(bool existing);
-		void	_cgi();
-		void	_openFile();
+		void	_cgi(const std::string &file);
+		void	_openFile(const std::string &file);
 	public:
 		Interpreter();
 		const response	&getResponse() const;

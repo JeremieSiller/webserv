@@ -12,12 +12,12 @@
 #include "utils.hpp"
 
 Interpreter::Interpreter() :
-	_request(), _connection(), _response(), _server(), _location(), _state(), _full_path(), _file() {
+	_request(), _connection(), _response(), _server(), _location(), _state(), _full_path(), _file(), _iscgi() {
 
 }
 
 Interpreter::Interpreter(Request &request, Connection *connection) :
-	_request(request), _connection(connection), _response(), _server(), _location(), _state(), _full_path(), _file() {
+	_request(request), _connection(connection), _response(), _server(), _location(), _state(), _full_path(), _file(), _iscgi() {
 	if (_request.getStatus() == Request::INVALID) {
 		_buildError(400);
 		return ;
@@ -165,6 +165,10 @@ void	Interpreter::_appendLocationToRoot() {
 	_full_path += with_out_location;
 }
 
+/**
+ * @brief answers to all request ending on /
+ * and finds the request directory
+ */
 void	Interpreter::_findDirectory() {
 	struct stat s;
 	if (stat(_full_path.c_str(), &s) == 0) {
@@ -174,7 +178,13 @@ void	Interpreter::_findDirectory() {
 			std::string	index_path = _full_path + *it;
 			if (stat(index_path.c_str(), &s) == 0) {
 				if (s.st_mode & S_IFREG) {
-					_build(200, index_path);
+					if (_location._cgi_extension != "" && ends_with(index_path, _location._cgi_extension)) {
+						_cgi(index_path);
+						_build(200);
+					} else {
+						_openFile(index_path);
+						_build(200);
+					}
 					return ;
 				} else {
 					_buildError(403);
@@ -198,28 +208,35 @@ void	Interpreter::_findDirectory() {
 	}
 }
 
+/**
+ * @brief finds the file
+ * determines if cgi, upload or just a simple response is needed
+ */
 void	Interpreter::_findFile() {
 	struct stat s;
 	if (stat(_full_path.c_str(), &s) == 0) {
 		if ( s.st_mode & S_IFREG) {
-			if (_location._upload == 1 && (_request.getMethod() == "PUT" || _request.getMethod() == "POST")) {
+			if (_location._cgi_extension != "" && ends_with(_request.getInterpreterInfo().abs_path, _location._cgi_extension)) {
+				_cgi(_full_path);
+				_build(200);
+			}
+			else if (_location._upload == 1 && (_request.getMethod() == "PUT" || _request.getMethod() == "POST")) {
 				_fileUpload(true);
-			} else if (1) { //cgi
-
-				_build(200, _full_path);
 			} else {
-				_build(200, _full_path);
+				_openFile(_full_path);
+				_build(200);
 			}
 		} else {
 			_full_path += '/';
 			_findDirectory();
 		}
 	} else {
-		if (_location._upload == 1 && (_request.getMethod() == "PUT" || _request.getMethod() == "POST")) {
+		if (_location._cgi_extension != "" && ends_with(_request.getInterpreterInfo().abs_path, _location._cgi_extension)) {
+			_cgi(_full_path);
+			_build(200);
+		}
+		else if (_location._upload == 1 && (_request.getMethod() == "PUT" || _request.getMethod() == "POST")) {
 			_fileUpload(false);
-		} else if (1 ) { //cgi
-
-			_buildError(404);
 		}
 		else {
 			_buildError(404);
@@ -227,78 +244,79 @@ void	Interpreter::_findFile() {
 	}
 }
 
-void	Interpreter::_build(int code, std::string const &_file) {
-	_state = true;
-	_response = response(code);
-	_buildStandard();
-	FILE *fp;
-	std::vector<char> vec;
-	LOG_RED("to check: |" << _request.getInterpreterInfo().abs_path << "|");
-	LOG_BLUE("cgi_extension: |" << _location._cgi_extension << "|");
-	if (ends_with(_request.getInterpreterInfo().abs_path, _location._cgi_extension)) {
-		LOG_YELLOW("CGI");
-		LOG_GREEN("body-size: " << _request.getBody().size());
-		cgi c(_request, _location, _file);
-		fp = c.getOutput();
-	} else {
-		fp = fopen(_file.c_str(), "r");
-	}
-	if (fp)
+/**
+ * @brief opens _file and adds it to the body
+ * if _iscgi == true it will parse the headers
+ * TODO check the status code from the cgi and use it for the response status code
+ * @param code 
+ */
+void	Interpreter::_build(int code) {
+	if (_file)
 	{
-		std::vector<char> eoh;
-		eoh.push_back('\r');
-		eoh.push_back('\n');
-		eoh.push_back('\r');
-		eoh.push_back('\n');
+		_state = true;
+		_response = response(code);
+		_buildStandard();
+		std::vector<char> vec;
 		char buf[1024];
-		while (size_t len = fread(buf, 1, sizeof(buf), fp))
+		while (size_t len = fread(buf, 1, sizeof(buf), _file))
 		{
 			vec.insert(vec.end(), buf, buf + len);
 		}
-		fclose(fp);
-		std::vector<char>::iterator pos = std::search(vec.begin(), vec.end(), eoh.begin(), eoh.end());
-		if (pos != vec.end()) {
-			pos += 4;
-			std::string	header= "";
-			std::string	value ="";
-			bool state = 0;
-			std::vector<char>::iterator it = vec.begin();
-			while (it != pos)
-			{
-				if (*it == '\t' && state == 0)
-					break;
-				else if (*it == ':' && state == 0) {
-					it+=2;
-					state = 1;
-					continue ;
-				} else if (state == 1 && *it == '\r') {
-					it += 2;
-					state = 0;
-					LOG_GREEN(header << " : " << value << "|");
-					_response.add_header(header, value);
-					value.clear();
-					header.clear();
-					continue ;
+		if (_iscgi == true)
+		{
+			std::string	eoh = "\r\n\r\n";
+			std::vector<char>::iterator pos = std::search(vec.begin(), vec.end(), eoh.begin(), eoh.end());
+			if (pos != vec.end()) {
+				pos += 4;
+				std::string	header= "";
+				std::string	value ="";
+				bool state = 0;
+				std::vector<char>::iterator it = vec.begin();
+				while (it != pos)
+				{
+					if (*it == '\t' && state == 0)
+						break;
+					else if (*it == ':' && state == 0) {
+						it+=2;
+						state = 1;
+						continue ;
+					} else if (state == 1 && *it == '\r') {
+						it += 2;
+						state = 0;
+						LOG_GREEN(header << " : " << value << "|");
+						_response.add_header(header, value);
+						value.clear();
+						header.clear();
+						continue ;
+					}
+					if (state == 0) {
+						header += *it;
+					} else {
+						value += *it;
+					}
+					it++;
 				}
-				if (state == 0) {
-					header += *it;
-				} else {
-					value += *it;
-				}
-				it++;
+				vec.erase(vec.begin(), pos);
 			}
-			vec.erase(vec.begin(), pos);
 		}
 		std::stringstream ss;
 		ss << vec.size();
 		_response.add_header("Content-length", ss.str());
 		_response.add_body(vec);
+		vec.clear();
+		fclose(_file);
 	} else
 	{
 		_buildError(403);
 	}
 }
 
+/**
+ * @brief builds extremly simple response with plain text
+ * 
+ * @param code status code
+ * @param text the body
+ */
 void	Interpreter::_buildText(int code, std::string const &text) {
 	_state = true;
 	_response = response(code);
@@ -319,13 +337,19 @@ void	Interpreter::_buildStandard() {
 		_response.add_header("Connection", "close");
 }
 
+/**
+ * @brief returns the response that was built
+ * 
+ * @return const response& 
+ */
 const response	&Interpreter::getResponse() const {
 	return _response;
 }
 
 /**
  * @brief uploads file to given directory
- * TODO:use cgi for upload. check in config file that upload_path is given if upload is enabled
+ * TODO:
+ * use cgi for upload. check in config file that upload_path is given if upload is enabled
  * @param exists determines if 201 (file created) or 204 (file updated) is returned
  */
 void	Interpreter::_fileUpload(bool exists) {
@@ -347,6 +371,22 @@ void	Interpreter::_fileUpload(bool exists) {
 	_buildError(500);
 }
 
-void	Interpreter::_cgi() {
+/**
+ * @brief calls the cgi class
+ * with "file" as input
+ * @param file 
+ */
+void	Interpreter::_cgi(const std::string &file) {
+	cgi c(_request, _location, file);
+	_file = c.getOutput();
+	_iscgi = true;
+}
 
+/**
+ * @brief opens a file with fopen
+ * 
+ * @param file 
+ */
+void	Interpreter::_openFile(const std::string &file) {
+	_file = fopen(file.c_str(), "r");
 }
