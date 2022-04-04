@@ -239,8 +239,9 @@ void	response::add_header(const std::string &attribute, const std::string &value
  * automatically inserts a EOL so the headers end is defined with two EOL's (\r\n\r\n)
  * @param _body a vector that contains all bytes to add to the body
  */
-void	response::add_body(const std::vector<char> &body) {
-	_body.insert(_body.end(), body.begin(), body.end());
+void	response::add_body(const std::vector<char> &body, const size_t &offset) {
+	_body.reserve(body.size() - offset);
+	_body.insert(_body.end(), body.begin() + offset, body.end());
 }
 
 

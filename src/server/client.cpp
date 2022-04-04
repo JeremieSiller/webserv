@@ -89,7 +89,8 @@ int	Client::readRequest()
 int Client::sendResponse()
 {
 	if (_interpreter.getResponse().getState() == response::START_WRITING) {
-		_interpreter = Interpreter(this->_req, this->_connection);
+		_interpreter = Interpreter(&this->_req, this->_connection);
+		_interpreter.execute();
 	}
 	ssize_t tmp = _interpreter.send(this->_client_socket);
 	if (tmp == -1) {

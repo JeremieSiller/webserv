@@ -62,7 +62,6 @@ void	cgi::_runCgi() {
 	int	fdin, fdout;
 	fdin = fileno(_input);
 	fdout = fileno(_output);
-	LOG_GREEN("WHYYYYY");
 	write(fdin, _req.getBody().begin().base(), _req.getBody().size());
 	lseek(fdin, 0, SEEK_SET);
 	int	pid = fork();
@@ -100,7 +99,6 @@ void	cgi::_runCgi() {
 			}
 		}
 	}
-	LOG_GREEN("cgi ran successfully");
 	lseek(fdout, 0, SEEK_SET);
 }
 

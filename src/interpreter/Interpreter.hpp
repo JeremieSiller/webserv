@@ -24,7 +24,7 @@
 class Interpreter {
 	
 	private:
-		Request			_request;
+		Request			*_request;
 		Connection		*_connection;
 		response		_response;
 		Server			_server;
@@ -50,8 +50,9 @@ class Interpreter {
 		void	_openFile(const std::string &file);
 	public:
 		Interpreter();
+		void	execute();
 		const response	&getResponse() const;
-		Interpreter(Request &Request, Connection *connection);
+		Interpreter(Request *Request, Connection *connection);
 		int	send(const int &fd);
 		~Interpreter();
 };

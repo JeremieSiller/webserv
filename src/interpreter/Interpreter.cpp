@@ -13,12 +13,19 @@
 
 Interpreter::Interpreter() :
 	_request(), _connection(), _response(), _server(), _location(), _state(), _full_path(), _file(), _iscgi() {
+}
+
+Interpreter::Interpreter(Request *request, Connection *connection) :
+	_request(request), _connection(connection), _response(), _server(), _location(), _state(), _full_path(), _file(), _iscgi() {
 
 }
 
-Interpreter::Interpreter(Request &request, Connection *connection) :
-	_request(request), _connection(connection), _response(), _server(), _location(), _state(), _full_path(), _file(), _iscgi() {
-	if (_request.getStatus() == Request::INVALID) {
+Interpreter::~Interpreter() {
+
+}
+
+void Interpreter::execute() {
+	if (_request->getStatus() == Request::INVALID) {
 		_buildError(400);
 		return ;
 	}
@@ -33,22 +40,18 @@ Interpreter::Interpreter(Request &request, Connection *connection) :
 	if (_state == 1)
 		return ;
 	_appendLocationToRoot();
-	if (_request.getInterpreterInfo().abs_path.back() == '/') {
+	if (_request->getInterpreterInfo().abs_path.back() == '/') {
 		_findDirectory();
 	} else {
 		_findFile();
 	}
 }
 
-Interpreter::~Interpreter() {
-
-}
-
 /**
  * @brief finds the server according to the hostname in the header
  */
 void	Interpreter::_findHostname() {
-	_server = _connection->getServer(_request.getHost());
+	_server = _connection->getServer(_request->getHost());
 }
 
 /**
@@ -62,7 +65,7 @@ void	Interpreter::_findLocation(std::vector<location> const &l) {
 	int		max = -1;
 	while (it != l.end()) {
 		const std::vector<std::string>	sp = split_string(it->_path, '/');
-		const std::vector<std::string>	&up = split_string(_request.getInterpreterInfo().abs_path, '/');
+		const std::vector<std::string>	&up = split_string(_request->getInterpreterInfo().abs_path, '/');
 		int c = count_continues_matches(sp, up);
 		if (c > max) {
 			_location = *it;
@@ -100,14 +103,14 @@ void	Interpreter::_buildError(int error) {
 		ss << c_length;
 		_response.add_header("Content-length", ss.str());
 		_response.add_header("Content-Type", "text/html");
-		_response.add_body(vec);
+		_response.add_body(vec, 0);
 	} else {
 		vec.push_back('5');
 		vec.push_back('0');
 		vec.push_back('0');
 		_response.add_header("Content-Type", "text/html");
 		_response.add_header("Content-length", "3");
-		_response.add_body(vec);
+		_response.add_body(vec, 0);
 	}
 }
 
@@ -116,7 +119,7 @@ void	Interpreter::_buildError(int error) {
  * body size is too big.
  */
 void	Interpreter::_checkBodySize() {
-	if (_location._client_max_body_size != 0 && _request.getBody().size() > _location._client_max_body_size) {
+	if (_location._client_max_body_size != 0 && _request->getBody().size() > _location._client_max_body_size) {
 		_buildError(413);
 	}
 }
@@ -126,7 +129,7 @@ void	Interpreter::_checkBodySize() {
  * builds 405 Method not allowed if the method is not allowed
  */
 void	Interpreter::_checkMethods() {
-	if (_location._methods.find(_request.getMethod()) == _location._methods.end()) {
+	if (_location._methods.find(_request->getMethod()) == _location._methods.end()) {
 		_buildError(405);
 	}
 }
@@ -158,9 +161,9 @@ void	Interpreter::_appendLocationToRoot() {
 	}
 	std::string	with_out_location;
 	if (_location._path.back() == '/')
-		with_out_location = _request.getInterpreterInfo().abs_path.substr(_location._path.length() - 1);
+		with_out_location = _request->getInterpreterInfo().abs_path.substr(_location._path.length() - 1);
 	else {
-		with_out_location = _request.getInterpreterInfo().abs_path.substr(_location._path.length());
+		with_out_location = _request->getInterpreterInfo().abs_path.substr(_location._path.length());
 	}
 	_full_path += with_out_location;
 }
@@ -194,7 +197,7 @@ void	Interpreter::_findDirectory() {
 			it++;
 		}
 		if (_location._autoindex == true) {
-			std::string html = buildDirectoryListing(_full_path, _request.getInterpreterInfo().abs_path);
+			std::string html = buildDirectoryListing(_full_path, _request->getInterpreterInfo().abs_path);
 			if (html != "") {
 				_buildText(200, html);
 			} else {
@@ -216,11 +219,11 @@ void	Interpreter::_findFile() {
 	struct stat s;
 	if (stat(_full_path.c_str(), &s) == 0) {
 		if ( s.st_mode & S_IFREG) {
-			if (_location._cgi_extension != "" && ends_with(_request.getInterpreterInfo().abs_path, _location._cgi_extension)) {
+			if (_location._cgi_extension != "" && ends_with(_request->getInterpreterInfo().abs_path, _location._cgi_extension)) {
 				_cgi(_full_path);
 				_build(200);
 			}
-			else if (_location._upload == 1 && (_request.getMethod() == "PUT" || _request.getMethod() == "POST")) {
+			else if (_location._upload == 1 && (_request->getMethod() == "PUT" || _request->getMethod() == "POST")) {
 				_fileUpload(true);
 			} else {
 				_openFile(_full_path);
@@ -231,11 +234,11 @@ void	Interpreter::_findFile() {
 			_findDirectory();
 		}
 	} else {
-		if (_location._cgi_extension != "" && ends_with(_request.getInterpreterInfo().abs_path, _location._cgi_extension)) {
+		if (_location._cgi_extension != "" && ends_with(_request->getInterpreterInfo().abs_path, _location._cgi_extension)) {
 			_cgi(_full_path);
 			_build(200);
 		}
-		else if (_location._upload == 1 && (_request.getMethod() == "PUT" || _request.getMethod() == "POST")) {
+		else if (_location._upload == 1 && (_request->getMethod() == "PUT" || _request->getMethod() == "POST")) {
 			_fileUpload(false);
 		}
 		else {
@@ -253,15 +256,15 @@ void	Interpreter::_findFile() {
 void	Interpreter::_build(int code) {
 	if (_file)
 	{
+		size_t	offset = 0;
 		_state = true;
 		_response = response(code);
 		_buildStandard();
-		std::vector<char> vec;
-		char buf[1024];
-		while (size_t len = fread(buf, 1, sizeof(buf), _file))
-		{
-			vec.insert(vec.end(), buf, buf + len);
-		}
+		LOG_BLUE("DONE");
+		ssize_t	s = get_file_size(_file);
+		std::vector<char> vec(s);
+		fread(vec.begin().base(), 1, s, _file);
+		LOG_YELLOW("DONE");
 		if (_iscgi == true)
 		{
 			std::string	eoh = "\r\n\r\n";
@@ -283,7 +286,6 @@ void	Interpreter::_build(int code) {
 					} else if (state == 1 && *it == '\r') {
 						it += 2;
 						state = 0;
-						LOG_GREEN(header << " : " << value << "|");
 						_response.add_header(header, value);
 						value.clear();
 						header.clear();
@@ -296,15 +298,16 @@ void	Interpreter::_build(int code) {
 					}
 					it++;
 				}
-				vec.erase(vec.begin(), pos);
+				offset = pos - vec.begin();
 			}
 		}
+		LOG_GREEN("DONE");
 		std::stringstream ss;
-		ss << vec.size();
+		ss << (vec.size() - offset);
 		_response.add_header("Content-length", ss.str());
-		_response.add_body(vec);
-		vec.clear();
+		_response.add_body(vec, offset);
 		fclose(_file);
+		LOG_RED("DONE");
 	} else
 	{
 		_buildError(403);
@@ -326,12 +329,12 @@ void	Interpreter::_buildText(int code, std::string const &text) {
 	_response.add_header("Content-length", ss.str());
 	_response.add_header("Content-Type", "text/html");
 	std::vector<char> vec(text.begin(), text.end());
-	_response.add_body(vec);
+	_response.add_body(vec, 0);
 }
 
 void	Interpreter::_buildStandard() {
 	_response.add_header("Server", "webvserv");
-	if (_request.getConnection() == true)
+	if (_request->getConnection() == true)
 		_response.add_header("Connection", "keep-alive");
 	else
 		_response.add_header("Connection", "close");
@@ -358,7 +361,7 @@ void	Interpreter::_fileUpload(bool exists) {
 	LOG_BLUE("file_path: " << path);
 	FILE *fp = fopen(path.c_str(), "w");
 	if (fp) {
-		fwrite(_request.getBody().begin().base(), 1, _request.getBody().size(), fp);
+		fwrite(_request->getBody().begin().base(), 1, _request->getBody().size(), fp);
 		fclose(fp);
 		if (exists == 1) {
 			_buildText(204, "");
@@ -377,7 +380,7 @@ void	Interpreter::_fileUpload(bool exists) {
  * @param file 
  */
 void	Interpreter::_cgi(const std::string &file) {
-	cgi c(_request, _location, file);
+	cgi c(*_request, _location, file);
 	_file = c.getOutput();
 	_iscgi = true;
 }

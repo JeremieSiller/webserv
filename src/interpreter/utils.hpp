@@ -71,4 +71,13 @@ inline bool ends_with(std::string const & value, std::string const & ending)
 	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
+inline ssize_t	get_file_size(FILE *fp) {
+	if (!fp)
+		return (-1);
+	fseek(fp, 0L, SEEK_END);
+	size_t ret = ftell(fp);
+	fseek(fp, 0L, SEEK_SET);
+	return ret;
+}
+
 #endif
