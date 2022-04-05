@@ -393,6 +393,10 @@ void	Interpreter::_openFile(const std::string &file) {
 	_file = fopen(file.c_str(), "r");
 }
 
+/**
+ * @brief checks if the redirection directive is set for the chosen location
+ * builds a 301 redirect if that is the case
+ */
 void	Interpreter::_checkRedirect() {
 	if (_location._redirect_path != "") {
 		_state = true;
