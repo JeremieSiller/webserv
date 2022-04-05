@@ -259,10 +259,9 @@ void	Interpreter::_findFile() {
 void	Interpreter::_build(int code) {
 	if (_file)
 	{
+		std::map<std::string, std::string>	headers;
 		size_t	offset = 0;
 		_state = true;
-		_response = response(code);
-		_buildStandard();
 		ssize_t	s = get_file_size(_file);
 		std::vector<char> vec(s);
 		fread(vec.begin().base(), 1, s, _file);
@@ -287,7 +286,10 @@ void	Interpreter::_build(int code) {
 					} else if (state == 1 && *it == '\r') {
 						it += 2;
 						state = 0;
-						_response.add_header(header, value);
+						headers[header] = value;
+						if (header == "Status") {
+							code = std::atoi(value.c_str());
+						}
 						value.clear();
 						header.clear();
 						continue ;
@@ -301,6 +303,14 @@ void	Interpreter::_build(int code) {
 				}
 				offset = pos - vec.begin();
 			}
+		}
+		_response = response(code);
+		_buildStandard();
+		std::map<std::string, std::string>::const_iterator it = headers.begin();
+		while (it != headers.end())
+		{
+			_response.add_header(it->first, it->second);
+			it++;
 		}
 		std::stringstream ss;
 		ss << (vec.size() - offset);
