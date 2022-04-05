@@ -33,11 +33,8 @@ public:
 		LISTEN,
 		CGI_EXTENSION,
 		CGI_PATH,
-<<<<<<< HEAD
 		CGI_METHOD,
 		REDIRECT,
-=======
->>>>>>> 6ae17545d4e7fb54bc58ee526395108438eafd52
 		SERVER_NAME,
 		AUTO_INDEX,
 		DOUBLE_DOT,

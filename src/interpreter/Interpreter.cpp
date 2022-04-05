@@ -39,6 +39,9 @@ void Interpreter::execute() {
 	_checkBodySize();
 	if (_state == 1)
 		return ;
+	_checkRedirect();
+	if (_state == 1)
+		return ;
 	_appendLocationToRoot();
 	if (_request->getInterpreterInfo().abs_path.back() == '/') {
 		_findDirectory();
@@ -260,11 +263,9 @@ void	Interpreter::_build(int code) {
 		_state = true;
 		_response = response(code);
 		_buildStandard();
-		LOG_BLUE("DONE");
 		ssize_t	s = get_file_size(_file);
 		std::vector<char> vec(s);
 		fread(vec.begin().base(), 1, s, _file);
-		LOG_YELLOW("DONE");
 		if (_iscgi == true)
 		{
 			std::string	eoh = "\r\n\r\n";
@@ -301,13 +302,11 @@ void	Interpreter::_build(int code) {
 				offset = pos - vec.begin();
 			}
 		}
-		LOG_GREEN("DONE");
 		std::stringstream ss;
 		ss << (vec.size() - offset);
 		_response.add_header("Content-length", ss.str());
 		_response.add_body(vec, offset);
 		fclose(_file);
-		LOG_RED("DONE");
 	} else
 	{
 		_buildError(403);
@@ -392,4 +391,14 @@ void	Interpreter::_cgi(const std::string &file) {
  */
 void	Interpreter::_openFile(const std::string &file) {
 	_file = fopen(file.c_str(), "r");
+}
+
+void	Interpreter::_checkRedirect() {
+	if (_location._redirect_path != "") {
+		_state = true;
+		_response = response(301);
+		_buildStandard();
+		_response.add_header("Location", _location._redirect_path);
+		_response.add_header("Content-length", "0");
+	}
 }
