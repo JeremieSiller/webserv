@@ -48,6 +48,7 @@ class Interpreter {
 		void	_fileUpload(bool existing);
 		void	_cgi(const std::string &file);
 		void	_openFile(const std::string &file);
+		void	_checkRedirect();
 	public:
 		Interpreter();
 		void	execute();
