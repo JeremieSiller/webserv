@@ -253,7 +253,6 @@ void	Interpreter::_findFile() {
 /**
  * @brief opens _file and adds it to the body
  * if _iscgi == true it will parse the headers
- * TODO check the status code from the cgi and use it for the response status code
  * @param code 
  */
 void	Interpreter::_build(int code) {
