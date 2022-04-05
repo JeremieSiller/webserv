@@ -18,8 +18,6 @@
 #define LOG(x) std::cout << x
 #define LOGN(x) std::cout << x << std::endl; 
 
-
-
 typedef struct s_location {
 	std::string						_path;
 	std::string						_root;
@@ -32,6 +30,7 @@ typedef struct s_location {
 	std::set<std::string>			_cgi_method;
 	char							_autoindex;
 	size_t							_client_max_body_size;
+	std::string						_redirect_path;
 }	location;
 
 typedef struct s_server {

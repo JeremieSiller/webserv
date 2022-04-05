@@ -31,6 +31,7 @@ const std::string	ConfigToken::identity[] = {
 	"cgi_extension",
 	"cgi_path",
 	"cgi_method",
+	"redirect",
 	"server_name",
 	"autoindex",
 	":",

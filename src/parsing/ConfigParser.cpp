@@ -168,6 +168,21 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 			if (it->type() != ConfigToken::EOF_INSTRUCT) {
 				throw unexpectedToken(it->content(), ", upload_path can not contain more than one path");
 			}
+		} else if (it->type() == ConfigToken::REDIRECT) {
+			if (l._redirect_path != "") {
+				throw unexpectedToken(it->content(), ", can not be set twice");
+			}
+			it++;
+			while(it->type() == ConfigToken::DOUBLE_DOT || it->type() == ConfigToken::STRING || it->type() == ConfigToken::PATH) {
+				l._redirect_path += it->content();
+				it++;
+			}
+			if (it->type() == ConfigToken::EOF_INSTRUCT && l._redirect_path == "") {
+				throw unexpectedToken(it->content(), ", redirect can not be empty");
+			}
+			if (it->type() != ConfigToken::EOF_INSTRUCT) {
+				throw unexpectedToken(it->content(), ", redirect can not contain this token");
+			}
 		} else if (it->type() == ConfigToken::CGI_PATH) {
 			if (l._cgi_path != "") {
 				throw unexpectedToken(it->content(), ", can not be set twice");
