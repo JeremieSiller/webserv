@@ -24,29 +24,35 @@
 class Interpreter {
 	
 	private:
-		Request			_request;
+		Request			*_request;
 		Connection		*_connection;
 		response		_response;
 		Server			_server;
 		location		_location;
 		bool			_state;
 		std::string		_full_path;
+		FILE			*_file;
+		bool			_iscgi;
 
 		void	_findHostname();
 		void	_findLocation(const std::vector<location> &l);
 		void	_buildError(int error);
 		void	_buildStandard();
-		void	_build(int code, std::string const &_file);
+		void	_build(int code);
 		void	_buildText(int code, std::string const &text);
 		void	_checkMethods();
 		void	_findFile();
 		void	_findDirectory();
 		void	_appendLocationToRoot();
 		void	_checkBodySize();
+		void	_fileUpload(bool existing);
+		void	_cgi(const std::string &file);
+		void	_openFile(const std::string &file);
 	public:
 		Interpreter();
+		void	execute();
 		const response	&getResponse() const;
-		Interpreter(Request &Request, Connection *connection);
+		Interpreter(Request *Request, Connection *connection);
 		int	send(const int &fd);
 		~Interpreter();
 };

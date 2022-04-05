@@ -49,25 +49,13 @@ int	Client::readRequest()
 	ret = recv(this->_client_socket, buf.begin().base(), MAX_RECV_SIZE, 0);
 	if (ret <= 0)
 		return (ret);
-
-	// for (int i = 0; i < ret; i++)
-	// {
-	// 	if (buf[i] == '\r')
-	// 		std::cout << "\\r";
-	// 	else if (buf[i] == '\n')
-	// 		std::cout << "\\n";
-	// 	else
-	// 		std::cout << buf[i];
-	// }
 	if (this->_req.getStatus() == Request::HEADER) {
 		this->_subBuffer.insert(this->_subBuffer.end(), buf.begin(), buf.begin() + ret);
 		std::vector<char>::const_iterator pos = find_pattern(_subBuffer, std::vector<char> (EO_HEADER, EO_HEADER + 4));
 		if (pos != this->_subBuffer.end())
 		{
-			LOG_YELLOW("Still in Header");
 			this->_req.setHeader(std::string(static_cast<std::vector<char>::const_iterator>(_subBuffer.begin()), pos + 4));
 			if (this->_req.getStatus() == Request::INVALID) {
-				LOG_RED("Invalid request!");
 				this->_status = WRITING;
 			}
 			LOG_RED(this->_req.getHeader());
@@ -89,7 +77,8 @@ int	Client::readRequest()
 int Client::sendResponse()
 {
 	if (_interpreter.getResponse().getState() == response::START_WRITING) {
-		_interpreter = Interpreter(this->_req, this->_connection);
+		_interpreter = Interpreter(&this->_req, this->_connection);
+		_interpreter.execute();
 	}
 	ssize_t tmp = _interpreter.send(this->_client_socket);
 	if (tmp == -1) {
