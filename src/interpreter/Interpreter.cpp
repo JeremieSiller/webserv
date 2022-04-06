@@ -145,7 +145,7 @@ void	Interpreter::_checkMethods() {
  * @param fd the filedescriptor usually a socket
  * @return int 
  */
-int	Interpreter::send(const int &fd) {
+ssize_t	Interpreter::send(const int &fd) {
 	return (_response.write_response(fd));
 }
 
