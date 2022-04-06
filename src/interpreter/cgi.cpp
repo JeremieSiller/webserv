@@ -78,13 +78,19 @@ void	cgi::_runCgi() {
 		}
 		close(fdin);
 		close(fdout);
-		char **arr = (char **)calloc(sizeof(char *), 3);
+		char **arr = new(char *[3]);
 		arr[0] = &(_loc._cgi_path[0]); 
 		arr[1] = &(_path[0]);
-		extern char **environ;
+		arr[2] = 0;
 		char **env = to_c_array(_env);
 		if (execve(_loc._cgi_path.c_str(), &(arr[0]), env) == -1) {
 			perror(arr[0]);
+			for (size_t i = 0; env[i]; i++)
+			{
+				delete env[i];
+			}
+			delete[] env;
+			delete[] arr;
 			exit(1);
 		}
 	} else {

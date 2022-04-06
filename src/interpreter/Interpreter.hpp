@@ -49,6 +49,7 @@ class Interpreter {
 		void	_cgi(const std::string &file);
 		void	_openFile(const std::string &file);
 		void	_checkRedirect();
+		void	_delete();
 	public:
 		Interpreter();
 		void	execute();
