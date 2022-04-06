@@ -27,12 +27,11 @@ typedef struct s_location {
 	std::string						_upload_path;
 	std::string						_cgi_extension;
 	std::string						_cgi_path;
-	std::set<std::string>			_cgi_method;
 	char							_autoindex;
 	size_t							_client_max_body_size;
 	std::string						_redirect_path;
 	s_location(): _path(), _root(), _methods(), _index(), _upload(), _upload_path(), _cgi_extension(), _cgi_path(),
-					_cgi_method(), _autoindex(), _client_max_body_size(), _redirect_path() { }
+					_autoindex(), _client_max_body_size(), _redirect_path() { }
 }	location;
 
 typedef struct s_server {

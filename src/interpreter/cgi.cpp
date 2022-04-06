@@ -88,6 +88,9 @@ void	cgi::_runCgi() {
 		char **env = to_c_array(_env);
 		if (execve(_loc._cgi_path.c_str(), &(arr[0]), env) == -1) {
 			perror(arr[0]);
+			for (size_t i = 0; env[i]; i++) {
+				delete [] env[i];
+			}
 			delete[] env;
 			delete[] arr;
 			exit(1);
