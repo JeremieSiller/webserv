@@ -1,5 +1,6 @@
 #include "response.hpp"
 #include <iostream>
+#include <sys/socket.h>
 
 /**
  * @brief get the reason message according to a status code
@@ -176,7 +177,7 @@ int	response::write_response(const int &fd) {
 		_state = WRITING;
 		return (1);
 	}
-	ssize_t	tmp = write(fd, _header.begin().base(), _header.size());
+	ssize_t	tmp = send(fd, _header.begin().base(), _header.size(), 0);
 	if (tmp < static_cast<ssize_t>(_header.size())) {
 		if (tmp == -1) {
 			_state = START_WRITING;

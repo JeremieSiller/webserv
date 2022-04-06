@@ -243,6 +243,12 @@ void	ConfigParser::_checkLocation(std::vector<ConfigToken>::iterator &it, locati
 	if (l._upload == -1) {
 		l._upload = false;
 	}
+	if (l._upload == true && l._upload_path == "") {
+		throw std::runtime_error("upload can not be enabled without upload_path");
+	}
+	if (l._cgi_extension != "" && l._cgi_path == "") {
+		throw std::runtime_error("cgi can not be enabled without cgi_path");
+	}
 }
 
 void	ConfigParser::_checkServer(std::vector<ConfigToken>::iterator &it, connection &c) {

@@ -33,6 +33,7 @@ cgi::~cgi()
 
 void	cgi::_setEnv() {
 	_env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	LOG_GREEN("body size: " << _req.getBody().size());
 	if (!_req.getBody().empty()) {
 		_env["CONTENT_LENGTH"] = to_string(_req.getContentLength());
 		_env["CONTENT_TYPE"] = _req.getParsedHeader().find("Content-Type")->second;
@@ -87,9 +88,8 @@ void	cgi::_runCgi() {
 		char **env = to_c_array(_env);
 		if (execve(_loc._cgi_path.c_str(), &(arr[0]), env) == -1) {
 			perror(arr[0]);
-			for (size_t i = 0; env[i]; i++)
-			{
-				delete env[i];
+			for (size_t i = 0; env[i]; i++) {
+				delete [] env[i];
 			}
 			delete[] env;
 			delete[] arr;

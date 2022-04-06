@@ -55,6 +55,6 @@ class Interpreter {
 		void	execute();
 		const response	&getResponse() const;
 		Interpreter(Request *Request, Connection *connection);
-		int	send(const int &fd);
+		ssize_t	send(const int &fd);
 		~Interpreter();
 };

@@ -30,7 +30,7 @@ std::vector<char>::const_iterator	Client::find_pattern(const std::vector<char> &
 	return std::search(data.begin(), data.end(), pattern.begin(), pattern.end());
 }
 
-Client::Client(t_socket client_socket, Connection *connection) : _client_socket(client_socket), _status(READING), _connection(connection), _offset()
+Client::Client(t_socket client_socket, Connection *connection) : _client_socket(client_socket), _status(READING), _connection(connection), _offset(), _buf(MAX_RECV_SIZE)
 {
 }
 
@@ -43,15 +43,13 @@ Client::~Client()
 
 int	Client::readRequest()
 {
-	std::vector<char>	buf;
 	int					ret;
 
-	buf.reserve(MAX_RECV_SIZE);
-	ret = recv(this->_client_socket, buf.begin().base(), MAX_RECV_SIZE, 0);
+	ret = recv(this->_client_socket, _buf.begin().base(), MAX_RECV_SIZE, 0);
 	if (ret <= 0)
 		return (ret);
 	if (this->_req.getStatus() == Request::HEADER) {
-		this->_subBuffer.insert(this->_subBuffer.end(), buf.begin(), buf.begin() + ret);
+		this->_subBuffer.insert(this->_subBuffer.end(), _buf.begin(), _buf.begin() + ret);
 		std::vector<char>::const_iterator pos = find_pattern(_subBuffer, std::vector<char> (EO_HEADER, EO_HEADER + 4));
 		if (pos != this->_subBuffer.end())
 		{
@@ -65,11 +63,12 @@ int	Client::readRequest()
 		}
 	}
 	else {
-		this->_req.addBody(buf.begin(), static_cast<std::vector<char>::const_iterator>((buf.begin() + ret)));
+		this->_req.addBody(_buf.begin(), static_cast<std::vector<char>::const_iterator>((_buf.begin() + ret)));
 	}
 
 	if (this->_req.getStatus() == Request::COMPLETE) {
 		LOG_BLUE("Request complete!");
+		memset(&_buf[0], 0, _buf.size() * sizeof(_buf[0]));
 		this->_status = WRITING;
 	}
 	return 1;
