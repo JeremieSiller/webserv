@@ -220,28 +220,26 @@ void	Interpreter::_findDirectory() {
  */
 void	Interpreter::_findFile() {
 	struct stat s;
-	if (stat(_full_path.c_str(), &s) == 0) {
+	if (_location._cgi_extension != "" && ends_with(_request->getInterpreterInfo().abs_path, _location._cgi_extension)) {
+		_cgi(_full_path);
+		_build(200);
+	}
+	else if (stat(_full_path.c_str(), &s) == 0) {
 		if ( s.st_mode & S_IFREG) {
-			if (_location._cgi_extension != "" && ends_with(_request->getInterpreterInfo().abs_path, _location._cgi_extension)) {
-				_cgi(_full_path);
-				_build(200);
-			}
-			else if (_location._upload == 1 && (_request->getMethod() == "PUT" || _request->getMethod() == "POST")) {
+			if (_location._upload == 1 && (_request->getMethod() == "PUT" || _request->getMethod() == "POST")) {
 				_fileUpload(true);
+			} else if (_request->getMethod() == "DELETE") {
+				_delete();
 			} else {
 				_openFile(_full_path);
 				_build(200);
 			}
 		} else {
-			_full_path += '/';
+			_full_path += '/'; //we could also send redirection to the new full path instead
 			_findDirectory();
 		}
 	} else {
-		if (_location._cgi_extension != "" && ends_with(_request->getInterpreterInfo().abs_path, _location._cgi_extension)) {
-			_cgi(_full_path);
-			_build(200);
-		}
-		else if (_location._upload == 1 && (_request->getMethod() == "PUT" || _request->getMethod() == "POST")) {
+		if (_location._upload == 1 && (_request->getMethod() == "PUT" || _request->getMethod() == "POST")) {
 			_fileUpload(false);
 		}
 		else {
@@ -413,5 +411,13 @@ void	Interpreter::_checkRedirect() {
 		_buildStandard();
 		_response.add_header("Location", _location._redirect_path);
 		_response.add_header("Content-length", "0");
+	}
+}
+
+void	Interpreter::_delete() {
+	if (unlink(_full_path.c_str()) == -1) {
+		_buildError(500);
+	} else {
+		_buildText(200, "<html>\n<body>\n<h1>File deleted.</h1>\n</body>\n</html>");
 	}
 }

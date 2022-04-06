@@ -173,6 +173,8 @@ int	response::write_response(const int &fd) {
 		}
 		LOG_BLUE("------");
 		_header.insert(_header.end(), _body.begin(), _body.end());
+		_state = WRITING;
+		return (1);
 	}
 	ssize_t	tmp = write(fd, _header.begin().base(), _header.size());
 	if (tmp < static_cast<ssize_t>(_header.size())) {
