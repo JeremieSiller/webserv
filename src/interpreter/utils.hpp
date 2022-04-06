@@ -27,6 +27,7 @@ std::string	buildDirectoryListing(std::string const &dir, std::string const &abs
 				ret += "</a>\n";
 			}
 		}
+		closedir(d);
 	}
 	else {
 		return "";

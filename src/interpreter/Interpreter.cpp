@@ -10,6 +10,8 @@
 #include "cgi.hpp"
 #include <fcntl.h>
 #include "utils.hpp"
+#include <algorithm>
+#include <string.h>
 
 Interpreter::Interpreter() :
 	_request(), _connection(), _response(), _server(), _location(), _state(), _full_path(), _file(), _iscgi() {
@@ -43,7 +45,7 @@ void Interpreter::execute() {
 	if (_state == 1)
 		return ;
 	_appendLocationToRoot();
-	if (_request->getInterpreterInfo().abs_path.back() == '/') {
+	if (_request->getInterpreterInfo().abs_path[_request->getInterpreterInfo().abs_path.length()] == '/') {
 		_findDirectory();
 	} else {
 		_findFile();
@@ -159,11 +161,11 @@ void	Interpreter::_appendLocationToRoot() {
 	} else {
 		_full_path = "";
 	}
-	if (_full_path.back() == '/') {
-		_full_path.pop_back();
+	if (_full_path[_full_path.length()] == '/') {
+		_full_path.erase(_full_path.length());
 	}
 	std::string	with_out_location;
-	if (_location._path.back() == '/')
+	if (_location._path[_location._path.length()] == '/')
 		with_out_location = _request->getInterpreterInfo().abs_path.substr(_location._path.length() - 1);
 	else {
 		with_out_location = _request->getInterpreterInfo().abs_path.substr(_location._path.length());
@@ -369,6 +371,10 @@ void	Interpreter::_fileUpload(bool exists) {
 	if (fp) {
 		fwrite(_request->getBody().begin().base(), 1, _request->getBody().size(), fp);
 		fclose(fp);
+		if (_location._path == "/post_body") {
+			system("leaks webserv");
+			exit(0);
+		}
 		if (exists == 1) {
 			_buildText(204, "");
 		}
