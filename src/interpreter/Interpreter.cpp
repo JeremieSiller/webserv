@@ -371,10 +371,6 @@ void	Interpreter::_fileUpload(bool exists) {
 	if (fp) {
 		fwrite(_request->getBody().begin().base(), 1, _request->getBody().size(), fp);
 		fclose(fp);
-		if (_location._path == "/post_body") {
-			system("leaks webserv");
-			exit(0);
-		}
 		if (exists == 1) {
 			_buildText(204, "");
 		}
