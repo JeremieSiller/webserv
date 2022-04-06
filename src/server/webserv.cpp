@@ -110,7 +110,6 @@ void webserv::run()
 			{
 				if (FD_ISSET((*itr)->getSocket(), &this->_readfds)) // we can read from client
 				{
-					//LOG_BLUE("Reading socket");
 					if ((*itr)->readRequest() <= 0) // if it returns 0 or -1 | close socket
 					{
 						LOG_RED("Recv rerturned <=0, removing client");
@@ -124,7 +123,6 @@ void webserv::run()
 					// parse then send response
 					// dont forget to clear vector in client !!
 					// either client status is DIE or WRITE which is the same
-					LOG_BLUE("Writing to socket");
 					//LOG_YELLOW((*itr)->getRequest().getHeader() << (*itr)->getRequest().getBody().size());
 					try {
 						if (!(*itr)->sendResponse()) {

@@ -124,13 +124,11 @@ int Request::parseHeader()
 
 int strHexDec(std::string str)
 {
-	std::cout << "size: 0x" << str;
 	for (size_t i = 0; i < str.length(); ++i)
 		str[i] = std::toupper(str[i]);
 	int bruh = 0;
 	for (size_t i = 0; i < str.length(); ++i)
 		bruh += ((str[i] >= 'A') ? (str[i] - 'A' + 10) : (str[i] - '0')) * (1 << ((str.length() - 1 - i) * 4));
-	std::cout << " : " << bruh << std::endl;
 	return bruh;
 }
 
@@ -214,23 +212,6 @@ void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>
 void Request::clear()
 {
 	*this = Request();
-	// this->_header = "";
-	// this->_body.clear();
-	// this->_parsedHeader = std::map<std::string, std::string>();
-	// this->_version = "";
-	// this->_path = "";
-	// this->_method = "";
-	// this->_headerStatus = HEADER;
-	// this->_chunksize = 0;
-	// this->_host = "";
-	// this->_contentLength = 0;
-	// this->_transferEncoding = "";
-	// this->_connection = true;
-	// this->_expect = false;
-	// this->_contenttype ="";
-	// this->_location = "";
-	// this->_server = "";
-	// this->_accept = std::list<std::string>();
 }
 
 

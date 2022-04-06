@@ -50,6 +50,7 @@ class Client
 		Interpreter					_interpreter;
 		std::vector<char>			_subBuffer;
 		size_t						_offset;
+		std::vector<char>			_buf;
 
 	public:
 
