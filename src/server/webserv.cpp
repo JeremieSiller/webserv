@@ -76,6 +76,7 @@ void webserv::run()
 {
 	while (true)
 	{
+		LABEL:
 		this->_initSets();
 
 		// select readfds
@@ -103,6 +104,7 @@ void webserv::run()
 					this->_clients.push_back((*itr)->newAccept());
 					this->_clients.back()->setClientStatus(Client::READING);
 					LOG_GREEN("client accepted");
+					goto LABEL;
 				}
 			}
 
@@ -114,9 +116,8 @@ void webserv::run()
 					{
 						LOG_RED("Recv rerturned <=0, removing client");
 						this->_removeClient(itr);
-						continue;
 					}
-					//LOG_GREEN("Read from client");
+					goto LABEL;
 				}
 				else if (FD_ISSET((*itr)->getSocket(), &this->_writefds))
 				{
@@ -135,7 +136,7 @@ void webserv::run()
 						}
 					}
 					//LOG_GREEN("Send repsonse to client");
-					
+					goto LABEL;
 				}
 			}
 		}
