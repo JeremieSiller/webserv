@@ -5,13 +5,16 @@
 
 int	main(int argc, char **argv) {
 	
-		if (argc != 2) { //define PATH all the time just for testing purpose.
+	if (argc > 2) { //define PATH all the time just for testing purpose.
 		std::cerr << "usage: " << argv[0] << " [PATHNAME]" << std::endl;
 		return (1);
 	}
 	try
 	{
-		Lexer<ConfigToken> l(argv[1]);
+		std::string path = "default/default.conf";
+		if (argc == 2)
+			path = argv[1];
+		Lexer<ConfigToken> l(path);
 		ConfigParser  p(l.getToken());
 		webserv webserver(p);
 
