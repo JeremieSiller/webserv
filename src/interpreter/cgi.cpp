@@ -10,6 +10,7 @@ static char	**to_c_array(std::map<std::string, std::string> const &m) {
 	while (it != m.end())
 	{
 		std::string	var = it->first + '=' + it->second;
+		ret[i] = new char[var.length() + 1];
 		strcpy(ret[i], var.c_str());
 		i++;
 		it++;
@@ -32,6 +33,7 @@ cgi::~cgi()
 
 void	cgi::_setEnv() {
 	_env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	LOG_GREEN("body size: " << _req.getBody().size());
 	if (!_req.getBody().empty()) {
 		_env["CONTENT_LENGTH"] = to_string(_req.getContentLength());
 		_env["CONTENT_TYPE"] = _req.getParsedHeader().find("Content-Type")->second;

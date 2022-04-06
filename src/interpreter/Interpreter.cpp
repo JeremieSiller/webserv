@@ -45,7 +45,7 @@ void Interpreter::execute() {
 	if (_state == 1)
 		return ;
 	_appendLocationToRoot();
-	if (_request->getInterpreterInfo().abs_path[_request->getInterpreterInfo().abs_path.length()] == '/') {
+	if (_request->getInterpreterInfo().abs_path[_request->getInterpreterInfo().abs_path.length() - 1] == '/') {
 		_findDirectory();
 	} else {
 		_findFile();
@@ -161,11 +161,11 @@ void	Interpreter::_appendLocationToRoot() {
 	} else {
 		_full_path = "";
 	}
-	if (_full_path[_full_path.length()] == '/') {
-		_full_path.erase(_full_path.length());
+	if (_full_path[_full_path.length() - 1] == '/') {
+		_full_path.erase(_full_path.length() - 1);
 	}
 	std::string	with_out_location;
-	if (_location._path[_location._path.length()] == '/')
+	if (_location._path[_location._path.length() - 1] == '/')
 		with_out_location = _request->getInterpreterInfo().abs_path.substr(_location._path.length() - 1);
 	else {
 		with_out_location = _request->getInterpreterInfo().abs_path.substr(_location._path.length());
@@ -223,6 +223,7 @@ void	Interpreter::_findDirectory() {
 void	Interpreter::_findFile() {
 	struct stat s;
 	if (_location._cgi_extension != "" && ends_with(_request->getInterpreterInfo().abs_path, _location._cgi_extension)) {
+		LOG_YELLOW("full_path: " << _full_path);
 		_cgi(_full_path);
 		_build(200);
 	}

@@ -68,6 +68,7 @@ int	Client::readRequest()
 
 	if (this->_req.getStatus() == Request::COMPLETE) {
 		LOG_BLUE("Request complete!");
+		memset(&_buf[0], 0, _buf.size() * sizeof(_buf[0]));
 		this->_status = WRITING;
 	}
 	return 1;
