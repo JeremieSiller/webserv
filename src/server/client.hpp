@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/17 18:42:26 by nschumac          #+#    #+#             */
-/*   Updated: 2022/04/01 17:05:06 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/04/06 17:45:56 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@
 
 typedef int t_socket;
 
-#define MAX_RECV_SIZE 4096
+#define MAX_RECV_SIZE 16384
 
 class Client
 {
