@@ -6,7 +6,7 @@
 /*   By: nschumac <nschumac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:53:29 by jhagedor          #+#    #+#             */
-/*   Updated: 2022/03/31 16:31:12 by nschumac         ###   ########.fr       */
+/*   Updated: 2022/04/06 17:51:27 by nschumac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 
 
 
-Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _method(), _headerStatus(HEADER), _chunksize() , _host(), _contentLength(), _transferEncoding(), _connection(true), _expect(false), _contenttype(), _location(), _server(), _accept() {this->_crlfvec = std::vector<char>(CRLF, &CRLF[2]);}
+Request::Request() : _header(), _body(), _parsedHeader(),_version(), _path(), _method(), _headerStatus(HEADER), _chunksize() , _host(), _contentLength(), _transferEncoding(), _connection(true), _expect(false), _contenttype(), _location(), _server(), _accept() {this->_crlfvec = std::vector<char>(CRLF, &CRLF[2]); this->_body.reserve(100000010);}
 
 void Request::setHeader(std::string const &header)
 {
@@ -124,23 +124,20 @@ int Request::parseHeader()
 
 int strHexDec(std::string str)
 {
-	std::cout << "size: 0x" << str;
 	for (size_t i = 0; i < str.length(); ++i)
 		str[i] = std::toupper(str[i]);
 	int bruh = 0;
 	for (size_t i = 0; i < str.length(); ++i)
 		bruh += ((str[i] >= 'A') ? (str[i] - 'A' + 10) : (str[i] - '0')) * (1 << ((str.length() - 1 - i) * 4));
-	std::cout << " : " << bruh << std::endl;
 	return bruh;
 }
 
-std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
+void Request::_parseChunked(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
-	std::vector<char>			ret;
 	std::vector<char>::const_iterator search;
 	std::vector<char>			copy;
 	
-	copy.reserve(8000);
+	copy.reserve(MAX_RECV_SIZE + 50);
 	if (rest.size() > 0)
 		copy.insert(copy.end(), rest.begin(), rest.end());
 	copy.insert(copy.end(), start, end);
@@ -151,20 +148,28 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 	
 	while (start != end)
 	{
-		while (this->_chunksize > 0)
+		if (_chunksize > 0)
 		{
-			ret.push_back(*(start++));
-			this->_chunksize--;
-			if (start == end)
-				return ret;
+			if (start + _chunksize >= end)
+			{
+				this->_body.insert(this->_body.end(), start, end);
+				_chunksize -= end - start;
+				return ;
+			}
+			else
+			{
+				this->_body.insert(this->_body.end(), start, start + _chunksize);
+				start += _chunksize;
+				_chunksize = 0;
+			}
 		}
-
+		
 		search = std::search(start, end, this->_crlfvec.begin(), this->_crlfvec.end());
 		// incomplete \r\n 
 		if (search == end)
 		{
 			rest.insert(rest.end(), start, end);
-			return ret;
+			return ;
 		}
 		// we caught first \r\n not complete shit
 		if (!isalnum(*start))
@@ -174,7 +179,7 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 			if (search == end)
 			{
 				rest.insert(rest.end(), start, end);
-				return ret;
+				return ;
 			}
 		}
 		// now between start and search there is the number...
@@ -186,23 +191,19 @@ std::vector<char> Request::_parseChunked(std::vector<char>::const_iterator start
 			if (std::search(start, end, CRLFTWO, &CRLFTWO[4]) == end)
 			{
 				rest.insert(rest.end(), start, end);
-				return ret;
+				return ;
 			}
 			this->_headerStatus = COMPLETE;
-			return ret;
+			return ;
 		}
 		start = search + 2;
 	}
-	return ret;
 }
 
 void Request::addBody(std::vector<char>::const_iterator start, std::vector<char>::const_iterator end)
 {
 	if (this->_parsedHeader["Transfer-Encoding"].find("chunked") != std::string::npos || this->_parsedHeader["Transfer-Encoding"] == "chunked")
-	{
-		std::vector<char> newbuf = this->_parseChunked(start, end);
-		this->_body.insert(_body.end(), newbuf.begin(), newbuf.end());
-	}
+		this->_parseChunked(start, end);
 	else
 	{
 		this->_body.insert(_body.end(), start, end);

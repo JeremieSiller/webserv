@@ -43,9 +43,10 @@ Client::~Client()
 
 int	Client::readRequest()
 {
-	std::vector<char>	buf(MAX_RECV_SIZE);
+	std::vector<char>	buf;
 	int					ret;
 
+	buf.reserve(MAX_RECV_SIZE);
 	ret = recv(this->_client_socket, buf.begin().base(), MAX_RECV_SIZE, 0);
 	if (ret <= 0)
 		return (ret);
