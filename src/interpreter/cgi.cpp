@@ -1,4 +1,6 @@
 #include "cgi.hpp"
+#include <string.h>
+#include <sys/wait.h>
 
 static char	**to_c_array(std::map<std::string, std::string> const &m) {
 	char	**ret;

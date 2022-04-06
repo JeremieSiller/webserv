@@ -15,6 +15,7 @@
 #include "Request.hpp"
 #include <sstream>
 #include "../server/client.hpp"
+#include <algorithm>
 
 
 
@@ -246,7 +247,7 @@ std::string	Request::uriDecode(std::string value)
 		{
 			std::string hex = value.substr(i + 1, 2);
 			// copy and paste, need to figure out how this line works
-			char dec = static_cast<char>(std::strtol(hex.c_str(), nullptr, 16));
+			char dec = static_cast<char>(std::strtol(hex.c_str(), NULL, 16));
 			result.push_back(dec);
 			i += 2;
 		}

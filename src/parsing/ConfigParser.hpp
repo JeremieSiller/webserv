@@ -31,6 +31,8 @@ typedef struct s_location {
 	char							_autoindex;
 	size_t							_client_max_body_size;
 	std::string						_redirect_path;
+	s_location(): _path(), _root(), _methods(), _index(), _upload(), _upload_path(), _cgi_extension(), _cgi_path(),
+					_cgi_method(), _autoindex(), _client_max_body_size(), _redirect_path() { }
 }	location;
 
 typedef struct s_server {
@@ -38,6 +40,7 @@ typedef struct s_server {
 	std::vector<std::string>			_server_names; //compare with host
 	std::map<int, std::string>			_error_pages;
 	std::string							_root;
+	s_server() : _locations(), _server_names(), _error_pages(), _root() { }
 } server;
 
 typedef struct s_connection {
