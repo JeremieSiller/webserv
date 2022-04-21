@@ -18,7 +18,7 @@ std::string	buildDirectoryListing(std::string const &dir, std::string const &abs
 		while ((dd = readdir(d)) != NULL)
 		{
 			if (dd->d_name[0] != '.') {
-				ret += "<a href=\"" + abs_path + dd->d_name;
+				ret += "<a href=\"" + abs_path + "/" + dd->d_name;
 				if (dd->d_type == DT_DIR)
 					ret += "/";
 				ret += "\">" + std::string(dd->d_name);

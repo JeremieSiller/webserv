@@ -303,6 +303,8 @@ void	Interpreter::_build(int code) {
 				}
 				offset = pos - vec.begin();
 			}
+		} else {
+			headers["Content-Type"] = "text/html";
 		}
 		_response = response(code);
 		_buildStandard();
